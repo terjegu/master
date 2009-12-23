@@ -1,0 +1,99 @@
+\ProvidesPackage{mystyle}
+
+% ---------- LAYOUT ----------
+\oddsidemargin 15mm
+\evensidemargin 0pt
+\textwidth 5.7in
+\textheight 234mm
+\topmargin 0in
+\headheight 0in                 % no header
+\textheight 8.5in                       
+\headsep \headheight
+\footskip .4in
+
+% ---------- PACKAGES ----------
+\usepackage[utf8]{inputenc} 
+% \usepackage{babel} % Only when l=nonenglish
+\usepackage{geometry}
+\usepackage{color}
+\usepackage[pdftex]{graphicx}
+\usepackage[urw-garamond]{mathdesign}
+	\expandafter\ifx\csname leqslant\endcsname\relax\usepackage{txfonts}\fi
+\usepackage[expansion=false]{microtype}
+\usepackage[firstpage]{draftwatermark}
+\usepackage{booktabs} 		% Better rulers in tables
+\usepackage{topcapt}		% Top caption in tables
+\usepackage{multirow} 		% Multirow in tables
+\usepackage{amsmath,amsthm} %amsfont
+\usepackage[all]{xy}		% XY pic
+\usepackage{subfigure}	
+%\usepackage{sidecap} 
+\usepackage{appendix}
+\usepackage{makeidx}
+
+% ---------- HYPERREF ----------
+\usepackage[pdftex]{hyperref} 
+\hypersetup{a4paper,
+ 			colorlinks=false,
+			pdfborder={0 0 0 0},
+			pdftitle={Voice Transformation with Gaussian Mixture Models}, 
+			pdfauthor={Terje Gundersen}, 
+			pdfcreator={Terje Gundersen}, 
+			pdfsubject={Master Thesis}, 
+			pdfkeywords={NTNU,Terje Gundersen,Speech Technology,Speech Conversion,Voice Transformation}
+			}
+			
+% ---------- ABBREVIATIONS ----------
+% complile with makeindex master.nlo -s nomencl.ist -o master.nls
+% use: \abbrev{MAF}{Minimum audible field}
+\usepackage[intoc]{nomencl} \let\abbrev\nomenclature 
+\renewcommand{\nomname}{List of Abbreviations} \setlength{\nomlabelwidth}{.25\hsize} 
+\renewcommand{\nomlabel}[1]{\textbf{#1} \dotfill}
+% \renewcommand{\nomlabel}[1]{\textbf{#1}}
+\setlength{\nomitemsep}{-\parsep}
+\makenomenclature 
+%use this command to display the list 
+\newcommand{\Listofabbrev}{
+\printnomenclature 
+\newpage }
+
+
+% ---------- THEOREMS ----------
+\theoremstyle{plain} 
+\newtheorem{theorem}{Theorem}[chapter] 
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{proposition}[theorem]{Proposition}
+% \newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition} 
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+% \newtheorem{notation}[theorem]{Notation}
+% \newtheorem{convention}[theorem]{Convention}
+
+% \theoremstyle{remark} 
+% \newtheorem{remark}[theorem]{Remark}
+
+
+% ---------- ALIASES ----------
+\newcommand{\ie}{i.e.~\/}
+\newcommand{\eg}{e.g.~\/} 
+\newcommand{\ca}{ca.~\/} 
+\newcommand{\etal}{\emph{et al.}~\/} 
+% \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+% ---------- MATH OPERATORS ----------
+% \DeclareMathOperator{\sinc}{sinc} 
+\DeclareMathOperator*{\argmax}{arg\,max}
+\providecommand{\abs}[1]{\lvert#1\rvert} 
+\providecommand{\norm}[1]{\lVert#1\rVert}
+\renewcommand{\le}{\leqslant}
+\renewcommand{\ge}{\geqslant}
+
+% ---------- NOTES IN PAPER ----------
+\definecolor{darkgreen}{rgb}{0.0,0.4,0.0}
+\newif\ifnonotes\nonotesfalse
+\newcommand{\Torbjorn}[1]{\ifnonotes\else{\color{darkgreen}\noindent{\bf Torbjorn: }#1}\fi}
+\newcommand{\Terje}[1]{\ifnonotes\else{\color{blue}  \noindent{\bf Terje: }#1}\fi}
+\newcommand{\TODO}[1]{\ifnonotes\else{\color{red}    \noindent{\bf TODO: }#1}\fi}
+%\nonotestrue % If this is commented, notes appear in the paper (if any)

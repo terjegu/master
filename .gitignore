@@ -1,0 +1,17 @@
+.DS_Store
+.svn
+.master.*
+*.tmproj
+*.aux
+*.log
+*.lot
+*.out
+*.pdf
+*.bbl
+*.blg
+*.ilg
+*.lof
+*.nlo
+*.nls
+*.toc
+*.synctex*
