@@ -1,5 +1,4 @@
 .DS_Store
-.svn
 .master.*
 *.tmproj
 *.aux
@@ -15,3 +14,5 @@
 *.nls
 *.toc
 *.synctex*
+*.idx
+*.ind

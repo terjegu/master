@@ -1,4 +1,57 @@
 \chapter{Implementation} % (fold)
 \label{cha:implementation}
 
+\section{Dynamic Time Warping} % (fold)
+\label{sec:dynamic_time_warping}
+
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{DTW accuracy}
+		\begin{tabular}{lll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Iteration}} & \multicolumn{1}{c}{\emph{score}} \\
+			\midrule
+			Basic Itakura distance & 1.9000 \\
+			Optimised Itakura distance & 1.7684 \\
+			word level & NA \\
+			phoneme level & NA \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:dtw_accuracy}	
+\end{table}
+
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Local constraints}
+		\begin{tabular}{llll}
+			\toprule
+			\multicolumn{1}{c}{Optimaized for} & \multicolumn{1}{c}{$\alpha$} & \multicolumn{1}{c}{$\beta$} & \multicolumn{1}{c}{$\gamma$} \\
+			\midrule
+			Itakura & 8 & 1 & 9 \\
+			Mean difference & 1 & 1 & 1 \\
+			Time difference & 9 & 1 & 10 \\
+			Swap & 9 & 1 & 10 \\			
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:local_constraints}	
+\end{table}
+
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Local constraints}
+		\begin{tabular}{llllll}
+			\toprule
+			\multicolumn{1}{c}{$\alpha$} & \multicolumn{1}{c}{$\beta$} & \multicolumn{1}{c}{$\gamma$} & \multicolumn{1}{c}{Itakura}  & \multicolumn{1}{c}{$\#$ Swap} & \multicolumn{1}{c}{$\#$ Difference}\\
+			\midrule
+			2 & 1 & 5 & 1.9000 & & \\
+			2 & 1 & 5 & 1.9000 & & \\
+			2 & 1 & 5 & 1.9000 & & \\			
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:local_constraints_II}	
+\end{table}
+% section Dynamic Time Warping (end)
 % chapter Method (end)

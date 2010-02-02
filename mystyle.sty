@@ -1,24 +1,25 @@
 \ProvidesPackage{mystyle}
 
 % ---------- LAYOUT ----------
-\oddsidemargin 15mm
-\evensidemargin 0pt
-\textwidth 5.7in
-\textheight 234mm
-\topmargin 0in
-\headheight 0in                 % no header
-\textheight 8.5in                       
-\headsep \headheight
-\footskip .4in
+% \oddsidemargin 15mm
+% \evensidemargin 0pt
+% \textwidth 5.7in
+% \textheight 234mm
+% \topmargin 0in
+% \headheight 0in                 % no header
+% \textheight 8.5in                       
+% \headsep \headheight
+% \footskip .4in
 
 % ---------- PACKAGES ----------
 \usepackage[utf8]{inputenc} 
+% \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
 \usepackage{color}
 \usepackage[pdftex]{graphicx}
-\usepackage[urw-garamond]{mathdesign}
-	\expandafter\ifx\csname leqslant\endcsname\relax\usepackage{txfonts}\fi
+% \usepackage[urw-garamond]{mathdesign}
+	% \expandafter\ifx\csname leqslant\endcsname\relax\usepackage{txfonts}\fi
 \usepackage[expansion=false]{microtype}
 \usepackage[firstpage]{draftwatermark}
 \usepackage{booktabs} 		% Better rulers in tables
@@ -33,8 +34,7 @@
 
 % ---------- HYPERREF ----------
 \usepackage[pdftex]{hyperref} 
-\hypersetup{a4paper,
- 			colorlinks=false,
+\hypersetup{colorlinks=false,
 			pdfborder={0 0 0 0},
 			pdftitle={Voice Transformation with Gaussian Mixture Models}, 
 			pdfauthor={Terje Gundersen}, 
