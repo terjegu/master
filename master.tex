@@ -4,11 +4,10 @@
 %  Created by Terje Gundersen on 2009-12-22.
 %
 %
-\documentclass[11pt,a4paper,twoside]{report} 
-% \usepackage{baththesis}
+\documentclass[11pt,a4paper,twoside,draft]{report} 
 \usepackage{mystyle}
 
-% \makeindex
+\makeindex
 
 
 
@@ -26,7 +25,7 @@
 % \cleardoublepage
 \input{tex/abstract.tex}
 % \cleardoublepage
-% \tableofcontents
+\tableofcontents
 % \listoffigures
 % \addcontentsline{toc}{chapter}{List of Figures}
 % \listoftables
@@ -37,9 +36,9 @@
 \pagenumbering{arabic}
 % \input{tex/introduction.tex}
 % \cleardoublepage
-% \input{tex/theory.tex}
+\input{tex/theory.tex}
 % \cleardoublepage
-\input{tex/methods.tex}
+\input{tex/implementation.tex}
 % \cleardoublepage
 % \input{tex/results.tex}
 % \cleardoublepage
@@ -49,9 +48,9 @@
 % \cleardoublepage
 
 % ---------- BIBLIOGRAPHY ----------
-% \bibliographystyle{ieeetr}
-% \small
-% \bibliography{bibliografi}
+\bibliographystyle{ieeetr}
+\small
+\bibliography{bibliografi}
 
 % ---------- APPENDIX ----------
 % \appendix
