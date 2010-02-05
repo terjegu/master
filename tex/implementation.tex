@@ -1,6 +1,8 @@
 \chapter{Implementation} % (fold)
 \label{cha:implementation}
 
+\TODO{histogram over LSF fordeling}
+
 \section{Dynamic Time Warping} % (fold)
 \label{imp:dynamic_time_warping}
 
@@ -21,17 +23,19 @@
 \label{tab:dtw_accuracy}	
 \end{table}
 
+Crit time limit $=50$ ms.
+
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{Local constraints}
-		\begin{tabular}{llll}
+		\begin{tabular}{l|rrr|rrrr}
 			\toprule
-			\multicolumn{1}{c}{Optimaized for} & \multicolumn{1}{c}{$\alpha$} & \multicolumn{1}{c}{$\beta$} & \multicolumn{1}{c}{$\gamma$} \\
+			\multicolumn{1}{c}{Optimaized for} & \multicolumn{1}{c}{$\alpha$} & \multicolumn{1}{c}{$\beta$} & \multicolumn{1}{c}{$\gamma$} & \multicolumn{1}{c}{Itakura} & \multicolumn{1}{c}{Swaps [\#]} & \multicolumn{1}{c}{Crit time [\#]} & \multicolumn{1}{c}{Mean time [ms]}\\
 			\midrule
-			Itakura & 8 & 1 & 9 \\
-			Mean difference & 1 & 1 & 1 \\
-			Time difference & 9 & 1 & 10 \\
-			Swap & 9 & 1 & 10 \\			
+			Itakura & 13 & 1 & 15 & 1.8148 & 17 & 25 & 65.76\\
+			Mean time & 13 & 1 & 15 & 1.8148 & 17 & 25 & 65.76\\
+			Crit time & 9 & 1 & 10 & 1.8171 & 17 & 25 & 65.78\\
+			Swaps & 9 & 1 & 10 & 1.8171 & 17 & 25 & 65.78\\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}

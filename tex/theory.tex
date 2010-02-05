@@ -71,12 +71,37 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 
 \section{Dynamic Time Warping} % (fold)
 \label{the:dynamic_time_warping}
+\newcommand{\ttt}{\mathcal T}
+\newcommand{\auto}{\boldsymbol \gamma}
+\newcommand{\Auto}{\boldsymbol \Gamma}
+\begin{definition}
+	Given a vector $\mathbf{a} = [a_0, a_1,\dots, a_{n-1}]$, The Toeplitz matrix $\ttt$ of $\mathbf{a}$ is then 
+	\begin{equation}
+		\ttt(\mathbf{a}) = 
+		\begin{bmatrix}
+		a_0 & a_1 & \dots & a_{n-1} 	\\
+		a_1 & a_0 & \dots & a_{n-2} \\
+		\vdots & \vdots & \ddots & \vdots \\
+		a_{n-1} & a_{n-2} & \dots & a_{0}
+		\end{bmatrix}
+	\end{equation}	
+\end{definition}
+
 Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping\index{Dynamic time warping} (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance}\index{Itakura distance} \cite{itakura90},
 \begin{equation}
-	\label{eq:dtw_distance}
-		d(\mathbf{a},\mathbf{b}) = \log\left(\frac{\mathbf{a}^T \mathbf{R}_s \mathbf{a}}{\mathbf{b}^T \mathbf{R}_s \mathbf{b}}\right)	
+	\label{eq:itakura_distance}
+	\begin{split}
+		d(\mathbf{a},\mathbf{b}) = & \log\left(\frac{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{aa}) \mathbf{a}}\right) \\
+		 = & \log\left(\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}\right), \quad a_1 = 1
+	\end{split}
 \end{equation}
-where $\mathbf{a}$ is a column vector of LP coefficients of one segment from the source signal, $\mathbf{b}$ is a column vector of LP coefficients of one segment from the target vector, and $\mathbf{R}_s$ is the autocorrelation matrix of the source signal. The Itakura distance is not a metric, however, since it is not symmetric \cite{kreyszig78}. The numerator of \eqref{eq:dtw_distance} is the residual, or the power of the error, from the LP analysis of the source signal with the source coefficients $\mathbf{a}$, whilst the denominator is the residual from the LP analysis of the \emph{source} signal with the \emph{target} coefficients $\mathbf{b}$. 
+\TODO{bestem notasjon}
+
+Full distance matrix
+\begin{equation}
+	\mathbf{D} = \log \left( \Auto_a \Auto_b^{-1} \right)
+\end{equation}
+where $\mathbf{a}$ is a column vector of LP coefficients of one segment from the source signal, $\mathbf{b}$ is a column vector of LP coefficients of one segment from the target vector, and $\mathbf{R}_s$ is the autocorrelation Toeplitz-matrix\index{Toeplitz} \cite{gray06} of the source signal. The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of the source signal with the source coefficients $\mathbf{a}$. For normalized coefficients, $a(1) = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of the \emph{source} signal with the \emph{target} coefficients $\mathbf{b}$. 
 
 The minimum distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
 \begin{equation}
@@ -340,6 +365,7 @@ The coefficients can be obtained by taking the derivative of \eqref{eq:predictio
 
 \subsection{Line Spectral Frequencies} % (fold)
 \label{sub:line_spectral_frequencies}
+\TODO{se prosjektkommentar}
 LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
 \begin{equation}
 	\label{eq:p_z}
