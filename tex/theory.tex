@@ -38,7 +38,7 @@ The GMM assumes that the probability distribution of the observed parameters tak
 \end{equation}
 where $m$ is the number of mixture models and $N(\mathbf{x}; \boldsymbol{\mu}_i, \mathbf{\Sigma}_i)$ denotes the p-dimensional normal distribution\index{Normal Distribution} \cite{statistikk} with the mean vector $\boldsymbol{\mu}_i$ and covariance matrix $\mathbf{\Sigma}_i$ defined by
 \begin{equation}
-	N(\mathbf{x}; \boldsymbol{\mu}, \mathbf{\Sigma}) = \frac{1}{\sqrt{(2\pi)^p\abs{\mathbf{\Sigma}}}} \exp\left[ -\frac{1}{2} (\mathbf{x} -\boldsymbol{\mu})^T \mathbf{\Sigma}^{-1} (\mathbf{x} -\boldsymbol{\mu})\right]
+	N(\mathbf{x}; \boldsymbol{\mu}, \mathbf{\Sigma}) = \frac{1}{\sqrt{(2\pi)^p\abs{\mathbf{\Sigma}}}} \exp\sbrackets{-\frac{1}{2} (\mathbf{x} -\boldsymbol{\mu})^T \mathbf{\Sigma}^{-1} (\mathbf{x} -\boldsymbol{\mu})}
 \end{equation}
 $\alpha_i$ in \eqref{eq:gmm} is the prior probability of class $i$ with constraints $\sum_{i=1}^{M}\alpha_i = 1$ and $\alpha_i \geq 0$. The input vectors $\mathbf{x}_i$ are assumed to be independent \cite{stylianou98}.
 
@@ -74,9 +74,23 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 \newcommand{\ttt}{\mathcal T}
 \newcommand{\auto}{\boldsymbol \gamma}
 \newcommand{\Auto}{\boldsymbol \Gamma}
+
+Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping\index{Dynamic time warping} (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance}\index{Itakura distance} \cite{itakura90},
+\newcommand{\ita}{d_{I}}
 \begin{definition}
-	Given a vector $\mathbf{a} = [a_0, a_1,\dots, a_{n-1}]$, The Toeplitz matrix $\ttt$ of $\mathbf{a}$ is then 
 	\begin{equation}
+		\label{eq:itakura_distance}
+		\begin{split}
+			\ita(\mathbf{a},\mathbf{b}) = & \log\parant{\frac{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{aa}) \mathbf{a}}} \\
+			 = & \log\parant{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}, \quad a_1 = 1
+		\end{split}
+	\end{equation}
+\end{definition}
+where $\mathbf{a}$ is a column vector of LP coefficients of one segment from the source signal, $\mathbf{b}$ is a column vector of LP coefficients of one segment from the target vector, and $\ttt$ is the Toeplitz-matrix defined as
+\begin{definition}
+	Given a vector $\mathbf{a} = [a_0, a_1,\dotsc, a_{n-1}]$, The Toeplitz matrix\index{Toeplitz matrix} $\ttt$ of $\mathbf{a}$ is 
+	\begin{equation}
+		\label{eq:toeplitz}
 		\ttt(\mathbf{a}) = 
 		\begin{bmatrix}
 		a_0 & a_1 & \dots & a_{n-1} 	\\
@@ -87,36 +101,26 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 	\end{equation}	
 \end{definition}
 
-Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping\index{Dynamic time warping} (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance}\index{Itakura distance} \cite{itakura90},
-\begin{equation}
-	\label{eq:itakura_distance}
-	\begin{split}
-		d(\mathbf{a},\mathbf{b}) = & \log\left(\frac{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{aa}) \mathbf{a}}\right) \\
-		 = & \log\left(\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}\right), \quad a_1 = 1
-	\end{split}
-\end{equation}
-\TODO{bestem notasjon}
+The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of the source signal with the source coefficients $\mathbf{a}$. For normalized coefficients, $a(1) = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of the \emph{source} signal with the \emph{target} coefficients $\mathbf{b}$. 
 
-Full distance matrix
+The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{A}=\sbrackets{\mathbf{a}_1,\mathbf{a}_2,\dotsc,\mathbf{a}_N}$ and $\mathbf{B}=\sbrackets{\mathbf{b}_1,\mathbf{b}_2,\dotsc,\mathbf{b}_M}$. \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
 \begin{equation}
-	\mathbf{D} = \log \left( \Auto_a \Auto_b^{-1} \right)
+	\mathbf{D}(i,j) = \log\parant{\mathbf{b}_j^T \ttt(\auto_{a_i}) \mathbf{b}_j}
 \end{equation}
-where $\mathbf{a}$ is a column vector of LP coefficients of one segment from the source signal, $\mathbf{b}$ is a column vector of LP coefficients of one segment from the target vector, and $\mathbf{R}_s$ is the autocorrelation Toeplitz-matrix\index{Toeplitz} \cite{gray06} of the source signal. The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of the source signal with the source coefficients $\mathbf{a}$. For normalized coefficients, $a(1) = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of the \emph{source} signal with the \emph{target} coefficients $\mathbf{b}$. 
 
-The minimum distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
+The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
+\newcommand{\dmin}{\textbf{D}_{min}}
 \begin{equation}
 	\label{eq:dtw_recursion}
 	\begin{split}
-		D(i,j) = \min \bigl[&D(i-1,j-1)+\alpha d(\mathbf{a}_i,\mathbf{b}_j),\\
-		& D(i-1,j)+\beta d(\mathbf{a}_i,\mathbf{b}_j),\\
-		& D(i,j-1)+\beta d(\mathbf{a}_i,\mathbf{b}_j),\\
-		& D(i-2,j-1)+\gamma d(\mathbf{a}_i,\mathbf{b}_j),\\
-		& D(i-1,j-2)+\gamma d(\mathbf{a}_i,\mathbf{b}_j)\bigr]		
+		\dmin(i,j) = \min \bigl[& \dmin(i-1,j-1)+\alpha \ita(\mathbf{a}_i,\mathbf{b}_j),\\
+		& \dmin(i-1,j)+\beta \ita(\mathbf{a}_i,\mathbf{b}_j),\\
+		& \dmin(i,j-1)+\beta \ita(\mathbf{a}_i,\mathbf{b}_j),\\
+		& \dmin(i-2,j-1)+\gamma \ita(\mathbf{a}_i,\mathbf{b}_j),\\
+		& \dmin(i-1,j-2)+\gamma \ita(\mathbf{a}_i,\mathbf{b}_j)\bigr]		
 	\end{split}
 \end{equation}
-where $\mathbf{a}_i$ and $\mathbf{b}_i$ denote the LP coefficients of segment $i$ from the two signals. 
-% I.e. the shortest path from $A$ to $C$ is the shortest path from $A$ to $B$ plus the shortest path from $B$ to $C$. 
-The problem is broken down into simpler subproblems, hence dynamic programming. 
+where $\mathbf{a}_i$ and $\mathbf{b}_j$ denotes the LP coefficients of segment $i$ and $j$, respectively, from the two signals. The problem is broken down into simpler subproblems, hence dynamic programming. 
 
 The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}. 
 \begin{figure}[htbp]
@@ -150,7 +154,7 @@ The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}.
 \end{figure}
 The weights $\alpha,\beta$ and $\gamma$, called local constraints, are optional and could have a significant effect on the outcome. For instance, the $\beta$ weights can be assigned a larger value to avoid multiple skipping or repetition of frames. Global constraints can be applied in addition to the local constraints which limits the resulting path by borders to guarantee a maximum modification of the signals.
 
-The resulting shortest path is used to duplicate and/or delete frames in the target to get a time-aligned version of the target vector of the same length as the source vector.
+The indices in the resulting shortest path are used to duplicate and/or delete frames in the source signal to get a time-aligned version of the source matrix of the same size as the target matrix.
 % section Dynamic Time Warping (end)
 
 
@@ -186,13 +190,15 @@ and $\mathbf{\Sigma}$ is the cross-covariance matrix
 \end{equation}
 
 Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function\index{Transformation function}
-\begin{equation}
-	\label{eq:conversion_function}
-	\begin{split}
-		\mathcal{F}(\mathbf{x}_t) =& E[\mathbf{y}\vert \mathbf{x}_t]\\
-		=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x}_t)[\boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \mathbf{\Sigma}_i^{xx^{-1}} (\mathbf{x}_t-\boldsymbol{\mu}_i^x)]
-	\end{split}
-\end{equation}
+\begin{definition}
+	\begin{equation}
+		\label{eq:conversion_function}
+		\begin{split}
+			\mathcal{F}(\mathbf{x}_t) =& E[\mathbf{y}\vert \mathbf{x}_t]\\
+			=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x}_t)[\boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \mathbf{\Sigma}_i^{xx^{-1}} (\mathbf{x}_t-\boldsymbol{\mu}_i^x)]
+		\end{split}
+	\end{equation}
+\end{definition}
 where the likelihoods are weighted with the conditional probabilities of $\mathbf{x}$ belonging to component $C$. Note that \eqref{eq:conversion_function} is not dependent of the target vector $\mathbf{y}$.
 
 The mean and covariance of the source vector $\mathbf{x}$ are derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\Sigma}^{yx}$ are unknown and need to be estimated such as the total squared conversion error $\epsilon$ is minimised

@@ -13,23 +13,20 @@
 
 % ---------- PACKAGES ----------
 % \usepackage[utf8]{inputenc} 
-\usepackage[T1]{fontenc}
-\usepackage{mathdesign}
+% \usepackage[T1]{fontenc}
+\usepackage{mathdesign} % utopia,garamond,charter
 % \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
 \usepackage{color}
 \usepackage[pdftex]{graphicx}
-% \usepackage{jkpss}
-% \usepackage[urw-garamond]{mathdesign}
-	% \expandafter\ifx\csname leqslant\endcsname\relax\usepackage{txfonts}\fi
 \usepackage[expansion=false]{microtype}
 % \usepackage[firstpage]{draftwatermark}
 \usepackage[firstpage]{xwatermark}
 \usepackage{booktabs} 		% Better rulers in tables
 \usepackage{topcapt}		% Top caption in tables
 \usepackage{multirow} 		% Multirow in tables
-\usepackage{amsmath,amsthm} % amsfonts, amssymb
+\usepackage{amsmath,amsthm,amsfonts} % amsfonts, amssymb
 \usepackage[all]{xy}		% XY pic
 \usepackage{subfigure}	
 %\usepackage{sidecap} 
@@ -65,13 +62,13 @@
 % ---------- THEOREMS ----------
 \theoremstyle{plain} 
 \newtheorem{theorem}{Theorem}[chapter] 
-% \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{lemma}[theorem]{Lemma}
 % \newtheorem{proposition}[theorem]{Proposition}
 % \newtheorem{corollary}[theorem]{Corollary}
 
 \theoremstyle{definition} 
 \newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
+% \newtheorem{example}[theorem]{Example}
 % \newtheorem{notation}[theorem]{Notation}
 % \newtheorem{convention}[theorem]{Convention}
 
@@ -91,8 +88,12 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 \providecommand{\abs}[1]{\lvert#1\rvert} 
 \providecommand{\norm}[1]{\lVert#1\rVert}
+\providecommand{\sbrackets}[1]{\left[#1\right]}
+\providecommand{\cbrackets}[1]{\lbrace#1\rbrace}
+\providecommand{\parant}[1]{\left(#1\right)}
 \renewcommand{\le}{\leqslant}
 \renewcommand{\ge}{\geqslant}
+
 
 % ---------- NOTES IN PAPER ----------
 \definecolor{darkgreen}{rgb}{0.0,0.4,0.0}
