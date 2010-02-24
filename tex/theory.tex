@@ -81,8 +81,8 @@ Feature comparison of two signals gives more sense if they are aligned in time. 
 	\begin{equation}
 		\label{eq:itakura_distance}
 		\begin{split}
-			\ita(\mathbf{a},\mathbf{b}) = & \log\parant{\frac{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{aa}) \mathbf{a}}} \\
-			 = & \log\parant{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}, \quad a_1 = 1
+			\ita(\mathbf{a},\mathbf{b}) = & \log\pbrackets{\frac{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{aa}) \mathbf{a}}} \\
+			 = & \log\pbrackets{\mathbf{b}^T \ttt(\auto_{a}) \mathbf{b}}, \quad a_1 = 1
 		\end{split}
 	\end{equation}
 \end{definition}
@@ -105,7 +105,7 @@ The Itakura distance is not a true metric, however, since it is not symmetric \c
 
 The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{A}=\sbrackets{\mathbf{a}_1,\mathbf{a}_2,\dotsc,\mathbf{a}_N}$ and $\mathbf{B}=\sbrackets{\mathbf{b}_1,\mathbf{b}_2,\dotsc,\mathbf{b}_M}$. \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
 \begin{equation}
-	\mathbf{D}(i,j) = \log\parant{\mathbf{b}_j^T \ttt(\auto_{a_i}) \mathbf{b}_j}
+	\mathbf{D}(i,j) = \log\pbrackets{\mathbf{b}_j^T \ttt(\auto_{a_i}) \mathbf{b}_j}
 \end{equation}
 
 The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
@@ -160,6 +160,10 @@ The indices in the resulting shortest path are used to duplicate and/or delete f
 
 \section{Filter Transformation} % (fold)
 \label{the:conversion_function}
+Correlation matrix
+\begin{equation}
+	R(i,j) = \frac{\Sigma(i,j)}{\sqrt{\Sigma(i,i)\Sigma(j,j)}}
+\end{equation}
 The process of filter transformation consists of altering the filter coefficients of the source, to match the target coefficients. Given a set of time-aligned source and target vectors and a GMM fitted to the source, as depicted in Figure~\ref{fig:VC_training}, 
 \begin{figure}[htbp]
 	\centering
@@ -190,16 +194,79 @@ and $\mathbf{\Sigma}$ is the cross-covariance matrix
 \end{equation}
 
 Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function\index{Transformation function}
+\newcommand{\fff}{\mathcal F}
 \begin{definition}
 	\begin{equation}
 		\label{eq:conversion_function}
 		\begin{split}
-			\mathcal{F}(\mathbf{x}_t) =& E[\mathbf{y}\vert \mathbf{x}_t]\\
+			\fff(\mathbf{x}_t) =& E[\mathbf{y}\vert \mathbf{x}_t]\\
 			=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x}_t)[\boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \mathbf{\Sigma}_i^{xx^{-1}} (\mathbf{x}_t-\boldsymbol{\mu}_i^x)]
 		\end{split}
 	\end{equation}
 \end{definition}
 where the likelihoods are weighted with the conditional probabilities of $\mathbf{x}$ belonging to component $C$. Note that \eqref{eq:conversion_function} is not dependent of the target vector $\mathbf{y}$.
+
+\begin{equation}
+	\begin{split}
+		\fff=\begin{bmatrix}
+			P(x_1) \\
+			P(x_2) \\
+			\vdots \\
+			P(x_p) \\
+		\end{bmatrix}\Bigg(
+		\begin{bmatrix}
+			\mu_1^y \\
+			\mu_2^y \\
+			\vdots \\
+			\mu_p^y
+		\end{bmatrix} + 
+		\begin{bmatrix}
+			\Sigma^z(y_1,x_1) & \dots & \Sigma^z(y_1,x_p) \\
+			\Sigma^z(y_2,x_2) & \dots & \Sigma^z(y_2,x_p)\\
+			\vdots & \ddots & \\
+			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
+		\end{bmatrix} & \\
+		\begin{bmatrix}
+			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
+			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
+			\vdots & \ddots & \\
+			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
+		\end{bmatrix} &
+		\begin{bmatrix}
+			x_1 - \mu_1^x \\
+			x_2 - \mu_2^x \\
+			\vdots \\
+			x_p - \mu_p^x \\
+		\end{bmatrix}\Bigg)
+	\end{split}
+\end{equation}
+
+\begin{equation}
+	\begin{split}
+		\fff=\begin{bmatrix}
+			P(x_1) \\
+			P(x_2) \\
+			\vdots \\
+			P(x_p) \\
+		\end{bmatrix}\Bigg(
+			\mu_p^y + 
+		\begin{bmatrix}
+			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
+		\end{bmatrix} & \\
+		\begin{bmatrix}
+			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
+			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
+			\vdots & \ddots & \\
+			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
+		\end{bmatrix} &
+		\begin{bmatrix}
+			x_1 - \mu_1^x \\
+			x_2 - \mu_2^x \\
+			\vdots \\
+			x_p - \mu_p^x \\
+		\end{bmatrix}\Bigg)
+	\end{split}
+\end{equation}
 
 The mean and covariance of the source vector $\mathbf{x}$ are derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\Sigma}^{yx}$ are unknown and need to be estimated such as the total squared conversion error $\epsilon$ is minimised
 \begin{equation}
@@ -371,7 +438,8 @@ The coefficients can be obtained by taking the derivative of \eqref{eq:predictio
 
 \subsection{Line Spectral Frequencies} % (fold)
 \label{sub:line_spectral_frequencies}
-\TODO{se prosjektkommentar}
+\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
+
 LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
 \begin{equation}
 	\label{eq:p_z}
