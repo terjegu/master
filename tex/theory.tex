@@ -376,6 +376,28 @@ Equation \eqref{eq:least_square_problem} is a least-square problem which can be 
 		\mathbf{Y} \\ % end line 2
 	\end{split}
 \end{equation}
+
+\subsection{Short time energy} % (fold)
+\label{sub:short_time_energy}
+\begin{definition}
+	\begin{equation}
+		E(n) = x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0),\alpha<1
+	\end{equation}
+\end{definition}
+Basic \cite{rabiner78}
+\begin{equation}
+	E(n)=\sum_{j=0}^{n}\alpha^jx^2(n-j)
+\end{equation}
+Derivation
+\begin{equation}
+	\begin{split}
+		E(n+1)=& \sum_{j=0}^{n+1}\alpha^jx^2(n+1-j)\\
+		=& x^2(n+1)+\sum_{j=1}^{n+1}\alpha^jx^2(n+1-j)\\
+		=& x^2(n+1)+\sum_{k=0}^{n}\alpha^{j+1} x^2(n-k)\\
+		=& x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0)\\
+	\end{split}
+\end{equation}
+% subsection Short time energy (end)
 % section Conversion Function (end)
 
 
