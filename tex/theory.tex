@@ -75,6 +75,11 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 \newcommand{\auto}{\boldsymbol \gamma}
 \newcommand{\Auto}{\boldsymbol \Gamma}
 
+\begin{itemize}
+	\item open ends only for target.
+	\item no skipping for source (target?)
+\end{itemize}
+
 Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping\index{Dynamic time warping} (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance}\index{Itakura distance} \cite{itakura90},
 \newcommand{\ita}{d_{I}}
 \begin{definition}
@@ -398,6 +403,16 @@ Derivation
 	\end{split}
 \end{equation}
 % subsection Short time energy (end)
+
+\subsection{Normalized Cepstral Distance} % (fold)
+\label{sub:normalized_cepstral_distance}
+\begin{definition}
+	Normalized cepstral distance (NCD)\index{Normalized cepstral distance}\abbrev{NCD}{Normalized cepstral distance}
+\begin{equation}
+	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
+\end{equation}
+\end{definition}
+% subsection Normalized Cepstral Distance (end)
 % section Conversion Function (end)
 
 
