@@ -413,6 +413,23 @@ Derivation
 \end{equation}
 \end{definition}
 % subsection Normalized Cepstral Distance (end)
+
+\subsection{$L_2$ metric} % (fold)
+\label{sub:l2_metric}
+l2 metric \cite{gray76}
+\begin{equation}
+	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
+\end{equation}
+\begin{equation}
+	d_2^2 = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\log \frac{S(\omega)}{S(\omega)}\right\rvert^2 d\omega
+\end{equation}
+\begin{equation}
+	d_2 [db] = 4.343 d_2
+\end{equation}
+\begin{equation}
+	10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
+\end{equation}
+% subsection L2 metric (end)
 % section Conversion Function (end)
 
 
