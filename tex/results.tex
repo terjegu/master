@@ -1,4 +1,41 @@
 \chapter{Results} % (fold)
 \label{cha:results}
 
+\section{Pitch prediction} % (fold)
+\label{sec:pitch_prediction}
+
+\begin{table}[ht]
+	\begin{center}
+		\topcaption{Pitch prediction error with correct target vector}
+		\begin{tabular}{lrr}
+			\toprule
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+			\midrule
+			Source pitch & 21.0 Hz & 20.5 Hz\\
+			GMM 32 & 13.4 Hz & 8.8 Hz\\
+			GMM 64 & 14.0 Hz & 10.3 Hz\\
+			GMM 128 & 14.7 Hz &  10.2 Hz\\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:pitch_prediction_baseline}	
+\end{table}
+
+\begin{table}[ht]
+	\begin{center}
+		\topcaption{Pitch prediction error with transformed target vector}
+		\begin{tabular}{lrr}
+			\toprule
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+			\midrule
+			Source pitch & 14.1 Hz & 16.1 Hz\\
+			GMM 32 & 11.4 Hz  & 12.4 Hz\\
+			GMM 64 & 9.4 Hz  & 14.0 Hz\\
+			GMM 128 & 9.4 Hz & 13.7 Hz\\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:pitch_prediction_transformed}	
+\end{table}
+% section Pitch prediction (end)
 % chapter Results (end)

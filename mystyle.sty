@@ -14,12 +14,13 @@
 % ---------- PACKAGES ----------
 % \usepackage[utf8]{inputenc} 
 % \usepackage[T1]{fontenc}
-\usepackage{mathdesign} % utopia,garamond,charter
+% \usepackage{mathdesign} % utopia,garamond,charter
 % \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
 \usepackage{color}
 \usepackage[pdftex]{graphicx}
+\usepackage{fancyhdr}
 \usepackage[expansion=false]{microtype}
 % \usepackage[firstpage]{draftwatermark}
 % \usepackage[firstpage]{xwatermark}
@@ -28,7 +29,9 @@
 \usepackage{multirow} 		% Multirow in tables
 \usepackage{amsmath,amsthm,amsfonts} % amsfonts, amssymb
 \usepackage[all]{xy}		% XY pic
-\usepackage{subfigure}	
+\usepackage{subfigure}
+\usepackage[small,bf]{caption}
+\usepackage{schemabloc}	
 %\usepackage{sidecap} 
 \usepackage{appendix}
 \usepackage{makeidx}
@@ -68,12 +71,12 @@
 
 \theoremstyle{definition} 
 \newtheorem{definition}[theorem]{Definition}
-% \newtheorem{example}[theorem]{Example}
 % \newtheorem{notation}[theorem]{Notation}
 % \newtheorem{convention}[theorem]{Convention}
+% \newtheorem{example}[theorem]{Example}
 
-% \theoremstyle{remark} 
-% \newtheorem{remark}[theorem]{Remark}
+\theoremstyle{remark} 
+\newtheorem{remark}[theorem]{Remark}
 
 
 % ---------- ALIASES ----------

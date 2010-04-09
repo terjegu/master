@@ -14,18 +14,13 @@
 % ---------- BEGIN DOCUMENT --------------
 \begin{document}
 % \input{tex/titlepage.tex}
-\pagenumbering{roman}
+% \pagenumbering{Roman}
 % \input{tex/titlepage_sub.tex}
-
-% \pagestyle{plain}
-% \setcounter{page}{1}
-% \clearpage
-% \setcounter{page}{0}
-
 % \cleardoublepage
 \input{tex/abstract.tex}
+% \pagenumbering{roman}
 % \cleardoublepage
-\tableofcontents
+% \tableofcontents
 % \listoffigures
 % \addcontentsline{toc}{chapter}{List of Figures}
 % \listoftables
@@ -34,13 +29,18 @@
 % \cleardoublepage
 % ---------- INTRODUCTION ----------
 \pagenumbering{arabic}
-% \input{tex/introduction.tex}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE]{{\nouppercase{\rightmark}}}
+\fancyhead[LO]{{\nouppercase{\leftmark}}}
+\cfoot{\thepage}
+\input{tex/introduction.tex}
 % \cleardoublepage
 \input{tex/theory.tex}
 % \cleardoublepage
 \input{tex/implementation.tex}
 % \cleardoublepage
-% \input{tex/results.tex}
+\input{tex/results.tex}
 % \cleardoublepage
 % \input{tex/discussion.tex}
 % \cleardoublepage

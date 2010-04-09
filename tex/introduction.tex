@@ -2,6 +2,28 @@
 \label{cha:introduction}
 \abbrev{$x$}{a variable} \abbrev{$\mathbf{x}$}{a vector} \abbrev{$\mathbf{X}$}{a matrix}
 
-abcdefghijklmnopqrstuvwxyzæåø
+abcdefghijklmnopqrstuvwxyz
+
+\begin{figure}[htbp]
+	\begin{center}
+		\begin{tikzpicture}
+			\sbEntree{E}
+			\sbComp{comp}{E}
+			\sbRelier[$x$]{E}{comp}
+			\sbBloc{reg}{$1-A(z)$}{comp}
+			\sbRelier{comp}{reg}
+			\sbBloc{sys}{$\frac{1}{1-\bar{A}(z)}$}{reg}
+			\sbRelier[$e$]{reg}{sys}
+			\sbSortie{S}{sys}
+			\sbRelier[$x$]{sys}{S}
+			\sbDecaleNoeudy[4]{S}{U}
+			\sbBlocr{cap}{FT}{U}
+			\sbRelieryx{sys-S}{cap}
+			\sbRelierxy[m]{cap}{comp}
+		\end{tikzpicture}
+		\caption{test}
+		\label{fig:test}
+	\end{center}
+\end{figure}
 
 % chapter Introduction (end)
