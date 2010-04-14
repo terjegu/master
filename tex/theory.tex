@@ -194,6 +194,128 @@ There is no option for the path $\dmin(i-2,j)$ to $\dmin(i,j)$ to ensure that al
 \end{remark}
 % section Dynamic Time Warping (end)
 
+\section{Signal Representation} % (fold)
+\label{the:signal_representation}
+The signal representation used in the source-filter separation is linear prediction coefficients, derived by linear predictive coding (LPC\abbrev{LPC}{linear predictive coding}). While the LP representation is a delicate representations of speech signals, it is not the best choice when it comes to manipulating the parameters in the filter transformation procedure, because they are not necessarily stable. A number of equivalent representations can be used instead for this purpose, such as line spectrum frequencies (LSF\abbrev{LSF}{line spectrum frequencies}) \cite{taletek}.
+
+\subsection{Linear Predictive Coding} % (fold)
+\label{sub:lpc}
+LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
+\begin{equation}
+	\tilde{x}[n] = \sum_{k=1}^{p}a_k x[n-k]
+\end{equation}
+The prediction error by this representation is 
+\begin{equation}
+	\begin{split}
+		e[n]= & x[n]-\tilde{x}[n]\\
+		= & x[n]-\sum_{k=1}^{p}a_k x[n-k]
+	\end{split}
+\end{equation}
+
+The prediction coefficients $a_k$ can be estimated by the minimum mean square error technique, which estimates the coefficients that minimise the total prediction error $E$.
+\begin{equation}
+	\label{eq:prediction_error}
+	\begin{split}
+		E = & \sum_{n}e^2[n]\\
+		= & \sum_{n}\left( x[n]-\sum_{k=1}^{p}a_k x[n-k] \right)^2
+	\end{split}
+\end{equation}
+The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. This yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved \cite{digsig}. The resulting $a_k$ coefficients are the linear prediction coefficients which represent the signal.
+% subsection Linear Predictive Coding (end)
+
+\subsection{Cepstrum} % (fold)
+\label{sub:mel_frequency_cepstrum}
+
+The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. The Mel-frequency cepstrum is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
+
+The Mel-scale is defined as \cite{taletek}
+\begin{equation}
+	B(f) = 1125\ln(1+f/700).
+\end{equation}
+
+Complex cepstrum $c$ from LPC coefficients $\alpha$,
+\begin{equation}
+	c_n = \begin{cases}
+		0, & n<0 \\
+		\ln G, & n=0\\
+		\alpha_n+\sum_{k=1}^{n-1}\frac{k}{n}c_k \alpha_{n-k}, & 0<n\leq p\\
+		\sum_{k=n-p}^{n-1}\frac{k}{n}c_k \alpha_{n-k}, & n > p\\
+	\end{cases}
+\end{equation}
+
+Complex cepstrum from LPC
+\begin{equation}
+	\alpha_n = c(n)-\sum_{k=l}^{n-l} \alpha_{n-k}
+\end{equation}
+
+
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tabular}[h]{c}
+	\xymatrix{ 
+  		x[n] \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2}\ar[r] &*+<5mm>[F]{\text{MEL}} \ar[r] &*+<5mm>[F]{\log(\cdot)} \ar[r] &*+<5mm>[F]{\text{DCT}} \ar[r] & c[n]}    
+  \end{tabular}
+  \caption{Computation of Mel-frequency cepstrum coefficients}
+  \label{fig:mfcc}
+\end{figure}
+% subsection Mel-Frequency Cepstrum (end)
+
+\subsection{Reflection Coefficients} % (fold)
+\label{sub:reflection_coefficients}
+The reflection coefficients can be obtained from the linear prediction coefficients by the following recursion
+\begin{equation}
+	\begin{split}
+		k_i = & a_i^i, \quad i=p,\dotsc,1 \\
+		a_j^{i-1} = & \frac{a_j^i+a_j^î a_{i-j}^i}{1-k_i^2}, \quad 1\leq j<i
+	\end{split}
+\end{equation}
+where $a_i^p=a_i$.
+
+The coefficients can be converted back to LP \cite{taletek}
+\begin{equation}
+	\begin{split}
+		a_i^i = & k_i, \quad i=1,\dotsc,p \\
+		a_j^i = & a_j^{i-1}-k_i a_{i-j}^{i-1}, \quad 1\leq j<i
+	\end{split}
+\end{equation}
+where $a_i=a_i^p$.
+% subsection Reflection Coefficients (end)
+
+
+\subsection{Line Spectral Frequencies} % (fold)
+\label{sub:line_spectral_frequencies}
+\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
+
+LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
+\begin{equation}
+	\label{eq:p_z}
+	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
+\end{equation}
+\begin{equation}
+	\label{eq:q_z}
+	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
+\end{equation}
+The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written as a product of
+$1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
+
+The are significant correlations between the LSF vectors in a frame which makes a diagonal covariance matrix in the GMM a bad assumption. There is not a significant correlation between the elements in a LSF vector, however. 
+
+\begin{figure}[htbp]
+	\centering
+	\begin{tabular}[h]{c}
+		\xymatrix{ 
+		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
+	\end{tabular}
+	\caption{LPC to LSF conversion used in filter transformation.}
+	\label{fig:lpc_to_lsf}
+\end{figure}
+LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
+% subsection Line Spectral Frequencies (end)
+
+% section Signal Representation (end)
+
+
 \section{Transformation function} % (fold)
 \label{sec:transformation_function}
 Given a set of time-aligned source and target vectors, $\mathbf{x}$ and $\mathbf{y}$, and a GMM fitted to a joint vector $\mathbf{z}=\sbrackets{\mathbf{x},\mathbf{y}}$, we want to define a transformation function which yields the most likely target vector given a new source vector
@@ -541,90 +663,5 @@ The factor $4.343$ comes from the natural logarithm to decibel conversion
 % subsection L2 metric (end)
 % section Robustness (end)
 
-\section{Signal Representation} % (fold)
-\label{the:signal_representation}
-The signal representation used in the source-filter separation is linear prediction coefficients, derived by linear predictive coding (LPC\abbrev{LPC}{linear predictive coding}). While the LP representation is a delicate representations of speech signals, it is not the best choice when it comes to manipulating the parameters in the filter transformation procedure, because they are not necessarily stable. A number of equivalent representations can be used instead for this purpose, such as line spectrum frequencies (LSF\abbrev{LSF}{line spectrum frequencies}) \cite{taletek}.
-
-\subsection{Linear Predictive Coding} % (fold)
-\label{sub:lpc}
-LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
-\begin{equation}
-	\tilde{x}[n] = \sum_{k=1}^{p}a_k x[n-k]
-\end{equation}
-The prediction error by this representation is 
-\begin{equation}
-	\begin{split}
-		e[n]= & x[n]-\tilde{x}[n]\\
-		= & x[n]-\sum_{k=1}^{p}a_k x[n-k]
-	\end{split}
-\end{equation}
-
-The prediction coefficients $a_k$ can be estimated by the minimum mean square error technique, which estimates the coefficients that minimise the total prediction error $E$.
-\begin{equation}
-	\label{eq:prediction_error}
-	\begin{split}
-		E = & \sum_{n}e^2[n]\\
-		= & \sum_{n}\left( x[n]-\sum_{k=1}^{p}a_k x[n-k] \right)^2
-	\end{split}
-\end{equation}
-The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. This yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved \cite{digsig}. The resulting $a_k$ coefficients are the linear prediction coefficients which represent the signal.
-% subsection Linear Predictive Coding (end)
-
-\subsection{Cepstrum} % (fold)
-\label{sub:mel_frequency_cepstrum}
-In the dynamic time warping algorithm presented in Section~\ref{sec:dynamic_time_warping} MFC coefficients are used instead of LP coefficients because they have the feature of Euclidean measures.
-
-The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. The Mel-frequency cepstrum is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
-
-The Mel-scale is defined as \cite{taletek}
-\begin{equation}
-	B(f) = 1125\ln(1+f/700).
-\end{equation}
-
-\TODO{define ar to cc conversion}
-\begin{equation}
-	\alpha_n = c(n)-\sum_{k=l}^{n-l} \alpha_{n-k}
-\end{equation}
-
-\begin{figure}[htbp]
-  \centering
-  \begin{tabular}[h]{c}
-	\xymatrix{ 
-  		x[n] \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2}\ar[r] &*+<5mm>[F]{\text{MEL}} \ar[r] &*+<5mm>[F]{\log(\cdot)} \ar[r] &*+<5mm>[F]{\text{DCT}} \ar[r] & c[n]}    
-  \end{tabular}
-  \caption{Computation of Mel-frequency cepstrum coefficients}
-  \label{fig:mfcc}
-\end{figure}
-% subsection Mel-Frequency Cepstrum (end)
-
-\subsection{Line Spectral Frequencies} % (fold)
-\label{sub:line_spectral_frequencies}
-\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
-
-LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
-\begin{equation}
-	\label{eq:p_z}
-	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
-\end{equation}
-\begin{equation}
-	\label{eq:q_z}
-	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
-\end{equation}
-The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written in product for of
-$1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
-
-\begin{figure}[htbp]
-	\centering
-	\begin{tabular}[h]{c}
-		\xymatrix{ 
-		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
-	\end{tabular}
-	\caption{LPC to LSF conversion used in filter transformation.}
-	\label{fig:lpc_to_lsf}
-\end{figure}
-LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
-% subsection Line Spectral Frequencies (end)
-
-% section Signal Representation (end)
 
 % chapter Theory (end)
