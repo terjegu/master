@@ -37,5 +37,43 @@
 	\end{center}
 \label{tab:pitch_prediction_transformed}	
 \end{table}
+
+\begin{table}[ht]
+	\begin{center}
+		\topcaption{Pitch prediction for unvoiced frames}
+		\begin{tabular}{lrr}
+			\toprule
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+			\midrule
+			Source pitch & 13.8 Hz & 15.5 Hz\\
+			GMM 64 & 10.8 Hz & 11.5 Hz \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:pitch_prediction_unvoiced}	
+\end{table}
 % section Pitch prediction (end)
+
+\section{Frequency Transformation} % (fold)
+\label{sec:frequency_transformation}
+
+\begin{table}[ht]
+	\begin{center}
+		\topcaption{Frequency Transform for unvoiced frames}
+		\begin{tabular}{ll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\midrule
+			itakura distance before & 0.5473 \\
+			itakura distance after & 0.4555 \\
+			L2 norm before & 4.3748\\
+			L2 norm after & 4.0101 \\
+			NCD & 0.5466 \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:frequency_transform_for_unvoiced_frames}	
+\end{table}
+
+% section Frequency Transformation (end)
 % chapter Results (end)

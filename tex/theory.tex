@@ -50,6 +50,133 @@ The challenge in this procedure is to find global context-independent transforma
 % \end{figure}
 % In the training process of the transformation functions the two input signals, source $x$ and target $y$, first need to be aligned in time, Section~\ref{sec:dynamic_time_warping}. The source data is classified into probabilistic Gaussian mixture models (GMM), Section~\ref{sec:gaussian_mixture_model}, and used in a class-specific transform \cite{stylianou09}. The parameters in the transformation function are derived from a set of source vectors and corresponding time aligned target vectors, and a GMM fitted to the source.
 
+\section{Signal Representation} % (fold)
+\label{the:signal_representation}
+Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need $\approx 40 000$ values. Linear predictive coding, Section~\ref{sub:lpc}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:VC}.
+
+LPC has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum}, \ref{sub:reflection_coefficients} and \ref{sub:line_spectral_frequencies}.
+\TODO{include LSF or not?}.
+
+\subsection{Linear Predictive Coding} % (fold)
+\label{sub:lpc}
+Linear predictive coding, LPC, was first applied to speech signals by Bishnu Atal \etal in 1968 \cite{atal68}. LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
+\begin{equation}
+	\tilde{x}[n] = \sum_{k=1}^{p}a_k x[n-k]
+\end{equation}
+The prediction error by this representation is 
+\begin{equation}
+	\begin{split}
+		e[n]= & x[n]-\tilde{x}[n]\\
+		= & x[n]-\sum_{k=1}^{p}a_k x[n-k]
+	\end{split}
+\end{equation}
+
+The prediction coefficients $a_k$ can be estimated by the minimum mean square error technique, which estimates the coefficients that minimise the total prediction error $E$.
+\begin{equation}
+	\label{eq:prediction_error}
+	\begin{split}
+		E = & \sum_{n}e^2[n]\\
+		= & \sum_{n}\left( x[n]-\sum_{k=1}^{p}a_k x[n-k] \right)^2
+	\end{split}
+\end{equation}
+The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. This yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved \cite{digsig}. The resulting $a_k$ coefficients are the linear prediction coefficients which represent the signal.
+
+Autocorrelation method is more robust to window location than the covariance method.\TODO{explain autocor-method}
+% subsection Linear Predictive Coding (end)
+
+\subsection{Cepstrum} % (fold)
+\label{sub:cepstrum}
+The cepstrum was first introduced by Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstrum coefficients have the property of low correlation between different frames of coefficients.
+
+The complex cepstrum $c$ parameters can be converted from LPC coefficients $\alpha$ by the following recursion:
+\begin{equation}
+	c(n) = \begin{cases}
+		\alpha_n+{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & 0<n\leq p\\
+		{\displaystyle\sum_{k=n-p}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & n > p\\
+	\end{cases}
+\end{equation}
+
+The cepstrum parameters can be converted back from LPC by rearranging the equation,
+\begin{equation}
+	\alpha_n = c_n-{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}
+\end{equation}
+However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable.
+
+
+The Mel-frequency cepstrum, MFC\index{MFC}\abbrev{MFC}{Mel-frequency cepstrum}, is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
+
+The Mel-scale is defined as \cite{taletek}
+\begin{equation}
+	B(f) = 1125\ln(1+f/700).
+\end{equation}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tabular}[h]{c}
+	\xymatrix{ 
+  		x[n] \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2}\ar[r] &*+<5mm>[F]{\text{MEL}} \ar[r] &*+<5mm>[F]{\log(\cdot)} \ar[r] &*+<5mm>[F]{\text{DCT}} \ar[r] & h[n]}    
+  \end{tabular}
+  \caption{Computation of Mel-frequency cepstrum coefficients}
+  \label{fig:mfcc}
+\end{figure}
+% subsection Cepstrum (end)
+
+\subsection{Reflection Coefficients} % (fold)
+\label{sub:reflection_coefficients}
+Reflection coefficients is another equivalent representation of LPC which is easily checked for stability. The reflection coefficients has a dynamic range of $\cbrackets{-1,1}$ if they are stable. 
+
+The reflection coefficients can be obtained from the linear prediction coefficients by the following recursion
+\begin{equation}
+	\begin{split}
+		k_i = & a_i^i, \quad i=p,\dotsc,1 \\
+		a_j^{i-1} = & \frac{a_j^i+a_j^î a_{i-j}^i}{1-k_i^2}, \quad 1\leq j<i
+	\end{split}
+\end{equation}
+where $a_i^p=a_i$.
+
+The coefficients can be converted back to LP by \cite{taletek}
+\begin{equation}
+	\begin{split}
+		a_i^i = & k_i, \quad i=1,\dotsc,p \\
+		a_j^i = & a_j^{i-1}-k_i a_{i-j}^{i-1}, \quad 1\leq j<i
+	\end{split}
+\end{equation}
+where $a_i=a_i^p$.
+% subsection Reflection Coefficients (end)
+
+
+\subsection{Line Spectral Frequencies} % (fold)
+\label{sub:line_spectral_frequencies}
+\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
+
+LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
+\begin{equation}
+	\label{eq:p_z}
+	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
+\end{equation}
+\begin{equation}
+	\label{eq:q_z}
+	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
+\end{equation}
+The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written as a product of
+$1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
+
+The are significant correlations between the LSF vectors in a frame which makes a diagonal covariance matrix in the GMM a bad assumption. There is not a significant correlation between the elements in a LSF vector, however. 
+
+\begin{figure}[htbp]
+	\centering
+	\begin{tabular}[h]{c}
+		\xymatrix{ 
+		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
+	\end{tabular}
+	\caption{LPC to LSF conversion used in filter transformation.}
+	\label{fig:lpc_to_lsf}
+\end{figure}
+LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
+% subsection Line Spectral Frequencies (end)
+
+% section Signal Representation (end)
+
 
 \section{Gaussian Mixture Model} % (fold)
 \label{sec:gaussian_mixture_model}
@@ -194,126 +321,6 @@ There is no option for the path $\dmin(i-2,j)$ to $\dmin(i,j)$ to ensure that al
 \end{remark}
 % section Dynamic Time Warping (end)
 
-\section{Signal Representation} % (fold)
-\label{the:signal_representation}
-The signal representation used in the source-filter separation is linear prediction coefficients, derived by linear predictive coding (LPC\abbrev{LPC}{linear predictive coding}). While the LP representation is a delicate representations of speech signals, it is not the best choice when it comes to manipulating the parameters in the filter transformation procedure, because they are not necessarily stable. A number of equivalent representations can be used instead for this purpose, such as line spectrum frequencies (LSF\abbrev{LSF}{line spectrum frequencies}) \cite{taletek}.
-
-\subsection{Linear Predictive Coding} % (fold)
-\label{sub:lpc}
-LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
-\begin{equation}
-	\tilde{x}[n] = \sum_{k=1}^{p}a_k x[n-k]
-\end{equation}
-The prediction error by this representation is 
-\begin{equation}
-	\begin{split}
-		e[n]= & x[n]-\tilde{x}[n]\\
-		= & x[n]-\sum_{k=1}^{p}a_k x[n-k]
-	\end{split}
-\end{equation}
-
-The prediction coefficients $a_k$ can be estimated by the minimum mean square error technique, which estimates the coefficients that minimise the total prediction error $E$.
-\begin{equation}
-	\label{eq:prediction_error}
-	\begin{split}
-		E = & \sum_{n}e^2[n]\\
-		= & \sum_{n}\left( x[n]-\sum_{k=1}^{p}a_k x[n-k] \right)^2
-	\end{split}
-\end{equation}
-The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. This yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved \cite{digsig}. The resulting $a_k$ coefficients are the linear prediction coefficients which represent the signal.
-% subsection Linear Predictive Coding (end)
-
-\subsection{Cepstrum} % (fold)
-\label{sub:mel_frequency_cepstrum}
-
-The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. The Mel-frequency cepstrum is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
-
-The Mel-scale is defined as \cite{taletek}
-\begin{equation}
-	B(f) = 1125\ln(1+f/700).
-\end{equation}
-
-Complex cepstrum $c$ from LPC coefficients $\alpha$,
-\begin{equation}
-	c_n = \begin{cases}
-		0, & n<0 \\
-		\ln G, & n=0\\
-		\alpha_n+\sum_{k=1}^{n-1}\frac{k}{n}c_k \alpha_{n-k}, & 0<n\leq p\\
-		\sum_{k=n-p}^{n-1}\frac{k}{n}c_k \alpha_{n-k}, & n > p\\
-	\end{cases}
-\end{equation}
-
-Complex cepstrum from LPC
-\begin{equation}
-	\alpha_n = c(n)-\sum_{k=l}^{n-l} \alpha_{n-k}
-\end{equation}
-
-
-
-\begin{figure}[htbp]
-  \centering
-  \begin{tabular}[h]{c}
-	\xymatrix{ 
-  		x[n] \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2}\ar[r] &*+<5mm>[F]{\text{MEL}} \ar[r] &*+<5mm>[F]{\log(\cdot)} \ar[r] &*+<5mm>[F]{\text{DCT}} \ar[r] & c[n]}    
-  \end{tabular}
-  \caption{Computation of Mel-frequency cepstrum coefficients}
-  \label{fig:mfcc}
-\end{figure}
-% subsection Mel-Frequency Cepstrum (end)
-
-\subsection{Reflection Coefficients} % (fold)
-\label{sub:reflection_coefficients}
-The reflection coefficients can be obtained from the linear prediction coefficients by the following recursion
-\begin{equation}
-	\begin{split}
-		k_i = & a_i^i, \quad i=p,\dotsc,1 \\
-		a_j^{i-1} = & \frac{a_j^i+a_j^î a_{i-j}^i}{1-k_i^2}, \quad 1\leq j<i
-	\end{split}
-\end{equation}
-where $a_i^p=a_i$.
-
-The coefficients can be converted back to LP \cite{taletek}
-\begin{equation}
-	\begin{split}
-		a_i^i = & k_i, \quad i=1,\dotsc,p \\
-		a_j^i = & a_j^{i-1}-k_i a_{i-j}^{i-1}, \quad 1\leq j<i
-	\end{split}
-\end{equation}
-where $a_i=a_i^p$.
-% subsection Reflection Coefficients (end)
-
-
-\subsection{Line Spectral Frequencies} % (fold)
-\label{sub:line_spectral_frequencies}
-\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
-
-LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
-\begin{equation}
-	\label{eq:p_z}
-	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
-\end{equation}
-\begin{equation}
-	\label{eq:q_z}
-	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
-\end{equation}
-The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written as a product of
-$1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
-
-The are significant correlations between the LSF vectors in a frame which makes a diagonal covariance matrix in the GMM a bad assumption. There is not a significant correlation between the elements in a LSF vector, however. 
-
-\begin{figure}[htbp]
-	\centering
-	\begin{tabular}[h]{c}
-		\xymatrix{ 
-		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
-	\end{tabular}
-	\caption{LPC to LSF conversion used in filter transformation.}
-	\label{fig:lpc_to_lsf}
-\end{figure}
-LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
-% subsection Line Spectral Frequencies (end)
-
-% section Signal Representation (end)
 
 
 \section{Transformation function} % (fold)
@@ -479,6 +486,7 @@ Equation \eqref{eq:least_square_problem} is a least-square problem which can be 
 	\end{split}
 \end{equation}
 % subsection Diagonal Covariance Matrix (end)
+
 \subsection{Filter Transformation} % (fold)
 \label{sub:filter_transformation}
 % subsection Filter Transformation (end)
@@ -612,56 +620,108 @@ The process of filter transformation consists of altering the filter coefficient
 
 \section{Robustness} % (fold)
 \label{sec:robustness}
-\subsection{Short time energy} % (fold)
-\label{sub:short_time_energy}
-\begin{definition}
-	\begin{equation}
-		E(n) = x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0),\alpha<1
-	\end{equation}
-\end{definition}
-Basic \cite{rabiner78}
+To increase the performance of the transformation... the signal can be altered...
+
+\subsection{Endpoint detection} % (fold)
+\label{sub:endpoint_detection}
+To exclude non-informative information, like silence in the beginning and end of a sentence, could enhance the transformation because it excludes unwanted training data. If the signal to noise ratio is high it is a trivial task. However, if there is some background noise it is not that easy to detect the boundaries of the speech utterance. The basic approach is the derive the energy of the signal and choose a boundary for how much energy there is in the utterance and clip the signal where the energy crosses this boundary. But if there is a peak in the noise level when the speaker is silent, the peak could be recognised as the start of a sentence.
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=.8\textwidth]{fig/endpoint_detection}
+		\caption{Endpoint detection with utterance boundary ITU and silence boundary ITL \cite{rabiner75}.}
+		\label{fig:endpoint_detection}
+	\end{center}
+\end{figure}
+\TODO{replace figure?}
+
+A more robust method of endpoint detection proposed by \cite{rabiner75} is to locate where we know for with a higher probability where this an utterance and backtrace from this point to the silence boundary, illustrated in Figure~\ref{fig:endpoint_detection}. Another technique for avoiding peak-noise error is the use of short-time energy. Instead of calculating the energy in each sample separately we can introduce a memory component to smooth out the energy contour.
 \begin{equation}
-	E(n)=\sum_{j=0}^{n}\alpha^jx^2(n-j)
+	E(n)=\sum_{j=0}^{n}\alpha^j x^2(n-j)
+	\label{eq:basic_ste}
 \end{equation}
-Derivation
+where $\alpha < 1$ decides how much information from the previous samples to include in the current energy value. Equation \eqref{eq:basic_ste} can be simplified to
 \begin{equation}
 	\begin{split}
 		E(n+1)=& \sum_{j=0}^{n+1}\alpha^jx^2(n+1-j)\\
 		=& x^2(n+1)+\sum_{j=1}^{n+1}\alpha^jx^2(n+1-j)\\
-		=& x^2(n+1)+\sum_{k=0}^{n}\alpha^{j+1} x^2(n-k)\\
+		=& x^2(n+1)+\sum_{k=0}^{n}\alpha^{k+1} x^2(n-k)\\
 		=& x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0)\\
 	\end{split}
+	\label{eq:short_time_energy}
 \end{equation}
-% subsection Short time energy (end)
 
-\subsection{Normalized Cepstral Distance} % (fold)
-\label{sub:normalized_cepstral_distance}
+By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpoints can be detected by choosing a utterance boundary of \eg $ITU=0.02$ and a lower silence boundrary, \eg $ITL=0.002$. The algorithm will seek for the first sample which exceeds $ITU$ and backtrace from this sample to the first sample with lower energy than $ITL$.
+% subsection Endpoint detection (end)
+
+\subsection{Pitch prediction} % (fold)
+\label{sub:detection_of_voicing}
+\begin{itemize}
+	\item why exclude voiced segments
+\end{itemize}
+There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+
+The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled. Then the signal is passed through an inverse fourth-order LPC filter to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the performance we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise.
+
+% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
+% \begin{equation}
+% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
+% 		\geq k, &\text{ unvoiced }\\
+% 		< k, &\text{ voiced }\\
+% 	\end{cases}
+% \end{equation}
+% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
+% subsection Detection of voicing (end)
+
+\subsection{Pre-emphesis} % (fold)
+\label{sub:pre_emphesis}
+Better match in high-frequency. best for $f_s$ greater than 16 kHz??
+% subsection Pre-emphesis (end)
+% section Robustness (end)
+
+\section{Objective result metrics} % (fold)
+\label{sec:objective_metrics}
+
+
 \begin{definition}
 	Normalized cepstral distance (NCD)\index{Normalized cepstral distance}\abbrev{NCD}{Normalized cepstral distance}
 \begin{equation}
 	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
 \end{equation}
 \end{definition}
-% subsection Normalized Cepstral Distance (end)
 
-\subsection{$L_2$ metric} % (fold)
-\label{sub:l_metric}
-$l_2$ metric \cite{gray76}
+
+\begin{definition} $l_2$ metric \cite{gray76}
 \begin{equation}
 	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
 \end{equation}
 \begin{equation}
-	d_2 = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S(\omega)}{S(\omega)}\right\rvert^2 d\omega
+	d_2(a,b) = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S_a(\omega)}{S_b(\omega)}\right\rvert^2 d\omega
 \end{equation}
 \begin{equation}
-	l_2  = 4.343 \sqrt{d_2} \quad [db]
+	l_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
 \end{equation}
+\end{definition}
+
 The factor $4.343$ comes from the natural logarithm to decibel conversion
 \begin{equation}
 	10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
 \end{equation}
-% subsection L2 metric (end)
-% section Robustness (end)
+% section Objective result metrics (end)
 
+
+
+
+\section{div} % (fold)
+\label{sec:div}
+modify freq spectra. Pull poles closer to origo.
+
+\begin{equation}
+	A(z) = 1+ \sum_{i} a_i z^{-i} = \prod_i (1-\rho_i z^{-i})
+\end{equation}
+\begin{equation}
+	A'(z) = 1+ \sum_{i} a_i \alpha^i z^{-i} = \prod_i (1-\rho_i \alpha^i z^{-i})
+\end{equation}
+% section div (end)
 
 % chapter Theory (end)

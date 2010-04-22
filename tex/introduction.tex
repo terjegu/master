@@ -26,4 +26,16 @@ abcdefghijklmnopqrstuvwxyz
 	\end{center}
 \end{figure}
 
+
+\begin{align}
+SNR(D)(dB) =&  P_r - N \\
+=& P_t - PL -N\\
+\begin{split}
+	= & P_t - 47 -30\log(D) - \\
+	 & 10\log\left(4k_{b}300\times3.456M\right)	
+\end{split} \\
+=& P_t - 30\log(D) +85
+\label{eq:SNR-pathloss}
+\end{align}
+
 % chapter Introduction (end)
