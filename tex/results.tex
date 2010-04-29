@@ -1,29 +1,24 @@
 \chapter{Results} % (fold)
 \label{cha:results}
 
+\section{Pitch and voiced/unvoiced detection} % (fold)
+\label{sec:pitch_and_voiced_unvoiced_detection}
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=.8\textwidth]{fig/voiced_detection}
+		\caption{Voiced/unvoiced detection. Red colour indicates segments of a speech signal detected as unvoiced.}
+		\label{fig:voiced_detection}
+	\end{center}
+\end{figure}
+% section Pitch and voiced/unvoiced detection (end)
+
+
 \section{Pitch prediction} % (fold)
 \label{sec:pitch_prediction}
 
-\begin{table}[ht]
+\begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction error with correct target vector}
-		\begin{tabular}{lrr}
-			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
-			\midrule
-			Source pitch & 21.0 Hz & 20.5 Hz\\
-			GMM 32 & 13.4 Hz & 8.8 Hz\\
-			GMM 64 & 14.0 Hz & 10.3 Hz\\
-			GMM 128 & 14.7 Hz &  10.2 Hz\\
-			\bottomrule			
-		\end{tabular}		
-	\end{center}
-\label{tab:pitch_prediction_baseline}	
-\end{table}
-
-\begin{table}[ht]
-	\begin{center}
-		\topcaption{Pitch prediction error with transformed target vector}
+		\topcaption{Pitch prediction error with transformed target vector, voiced detection with autocorrelation}
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
@@ -38,15 +33,15 @@
 \label{tab:pitch_prediction_transformed}	
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction for unvoiced frames}
+		\topcaption{Pitch prediction for all frames, voiced detection from file}
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
 			\midrule
-			Source pitch & 13.8 Hz & 15.5 Hz\\
-			GMM 64 & 10.8 Hz & 11.5 Hz \\
+			Source pitch & 15.0 Hz & 15.3 Hz\\
+			GMM 64 & 15.6 Hz  & 12.5 Hz \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
@@ -59,7 +54,7 @@
 
 \begin{table}[ht]
 	\begin{center}
-		\topcaption{Frequency Transform for unvoiced frames}
+		\topcaption{Frequency Transform for unvoiced frames, autocorrelation for voiced/unvoiced detection}
 		\begin{tabular}{ll}
 			\toprule
 			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
@@ -74,6 +69,26 @@
 	\end{center}
 \label{tab:frequency_transform_for_unvoiced_frames}	
 \end{table}
+
+\begin{table}[ht]
+	\begin{center}
+		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, NCD only for converted frames}
+		\begin{tabular}{ll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\midrule
+			itakura distance before & 0.5859 \\
+			itakura distance after & 0.4881 \\
+			L2 norm before & 4.4977\\
+			L2 norm after & 4.0118 \\
+			NCD & 0.6238 \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:frequency_transform_for_unvoiced_frames}	
+\end{table}
+
+Correct voiced detection has higher subjective quality but worse objective quality.
 
 % section Frequency Transformation (end)
 % chapter Results (end)

@@ -1,26 +1,5 @@
 \chapter{Theory} % (fold)
 \label{cha:theory}
-\begin{enumerate}
-	\item source filter method
-	\item GMM
-	\item DTW
-	\item Signal representation
-	\begin{itemize}
-		\item MFCC
-		\item pitch
-		\begin{enumerate}
-			\item detection
-			\item PSOLA
-		\end{enumerate}
-	\end{itemize}
-	\item Conversion function
-	\begin{enumerate}
-		\item Full
-		\item diag
-	\end{enumerate}
-	\item robustness
-\end{enumerate}
-
 The basic idea of the voice transformation is to make a linear prediction, LP, analysis of the signal and extract the estimate from the real signal to yield a source-filter separation, where the excitation represents the source and the LP coefficients represent the filter. The frequency spectra of the voice can be transformed by altering the filter coefficients to match the new voice, and the pitch can be transformed by performing the PSOLA technique on the excitation signal. The transformed excitation and LP coefficients are used in the inverse filter to synthesis the transformed voice, as depicted in Figure~\ref{fig:VC}.
 \begin{figure}[htbp]
   \begin{center}
@@ -54,7 +33,7 @@ The challenge in this procedure is to find global context-independent transforma
 \label{the:signal_representation}
 Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need $\approx 40 000$ values. Linear predictive coding, Section~\ref{sub:lpc}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:VC}.
 
-LPC has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum}, \ref{sub:reflection_coefficients} and \ref{sub:line_spectral_frequencies}.
+LPC has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}.
 \TODO{include LSF or not?}.
 
 \subsection{Linear Predictive Coding} % (fold)
@@ -95,21 +74,25 @@ The complex cepstrum $c$ parameters can be converted from LPC coefficients $\alp
 		{\displaystyle\sum_{k=n-p}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & n > p\\
 	\end{cases}
 \end{equation}
+where $p$ is the number of LPC coefficients. The cepstrum representation is define with infinity number of coefficients, anything less will be an approximation. The usual choice of accuracy is in order of 20 coefficients.
 
 The cepstrum parameters can be converted back from LPC by rearranging the equation,
 \begin{equation}
-	\alpha_n = c_n-{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}
+	c_n-{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k} = \begin{cases}
+		\alpha_n, &\quad 0< n \leq p\\
+		0, &\quad n > p
+	\end{cases}
 \end{equation}
-However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable.
+However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable and the recursion will not yield 0 for $n>p$.  
 
 
-The Mel-frequency cepstrum, MFC\index{MFC}\abbrev{MFC}{Mel-frequency cepstrum}, is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
-
-The Mel-scale is defined as \cite{taletek}
-\begin{equation}
-	B(f) = 1125\ln(1+f/700).
-\end{equation}
-
+% The Mel-frequency cepstrum, MFC\abbrev{MFC}{Mel-frequency cepstrum}, is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
+% 
+% The Mel-scale is defined as \cite{taletek}
+% \begin{equation}
+% 	B(f) = 1125\ln(1+f/700).
+% \end{equation}
+% 
 \begin{figure}[htbp]
   \centering
   \begin{tabular}[h]{c}
@@ -145,42 +128,42 @@ where $a_i=a_i^p$.
 % subsection Reflection Coefficients (end)
 
 
-\subsection{Line Spectral Frequencies} % (fold)
-\label{sub:line_spectral_frequencies}
-\TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
-
-LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
-\begin{equation}
-	\label{eq:p_z}
-	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
-\end{equation}
-\begin{equation}
-	\label{eq:q_z}
-	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
-\end{equation}
-The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written as a product of
-$1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
-
-The are significant correlations between the LSF vectors in a frame which makes a diagonal covariance matrix in the GMM a bad assumption. There is not a significant correlation between the elements in a LSF vector, however. 
-
-\begin{figure}[htbp]
-	\centering
-	\begin{tabular}[h]{c}
-		\xymatrix{ 
-		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
-	\end{tabular}
-	\caption{LPC to LSF conversion used in filter transformation.}
-	\label{fig:lpc_to_lsf}
-\end{figure}
-LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
-% subsection Line Spectral Frequencies (end)
+% \subsection{Line Spectral Frequencies} % (fold)
+% \label{sub:line_spectral_frequencies}
+% \TODO{se prosjektkommentar. LPC stabilt, LSF stabilt filter}
+% 
+% LSF is an equivalent representation of LPC which easily can be controlled for stability. It can be converted from the LP coefficients $A(z)$ and back again. It is derived from the roots of the polynomials $P(z)$ and $Q(z)$ 
+% \begin{equation}
+% 	\label{eq:p_z}
+% 	P(z) = A(z)+z^{-(p+1)}A(z^{-1})
+% \end{equation}
+% \begin{equation}
+% 	\label{eq:q_z}
+% 	Q(z) = A(z)-z^{-(p+1)}A(z^{-1})
+% \end{equation}
+% The zeros of $P(z)$ and $Q(z)$ are respectively symmetric and anti-symmetric. When $A(z)$ is minimum phase, the zeros of $P(z)$ and $Q(z)$ are all on the unit circle, and the polynomials can thus be written as a product of
+% $1-z^{-1}\exp(-j\omega_k)$, where $\omega_k$ is the LSF frequencies. The derivation of the first LSF coefficients is shown in \cite[p. 304]{taletek}.
+% 
+% The are significant correlations between the LSF vectors in a frame which makes a diagonal covariance matrix in the GMM a bad assumption. There is not a significant correlation between the elements in a LSF vector, however. 
+% 
+% \begin{figure}[htbp]
+% 	\centering
+% 	\begin{tabular}[h]{c}
+% 		\xymatrix{ 
+% 		A(z) \ar[r] &*+<5mm>[F-,]{ LPC\rightarrow LSF} \ar[r] &*+<5mm>[F-,]{	\txt{FT}}\ar[r] &*+<5mm>[F-,]{LSF\rightarrow LPC} \ar[r] & \hat{A}(z)}    
+% 	\end{tabular}
+% 	\caption{LPC to LSF conversion used in filter transformation.}
+% 	\label{fig:lpc_to_lsf}
+% \end{figure}
+% LSF is used in the transformation function, as depicted in Figure~\ref{fig:lpc_to_lsf}, to guarantee stability.
+% % subsection Line Spectral Frequencies (end)
 
 % section Signal Representation (end)
 
 
 \section{Gaussian Mixture Model} % (fold)
 \label{sec:gaussian_mixture_model}
-The GMM\index{Gaussian Mixture Model} is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech sound, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \TODO{cite}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
+The GMM is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech sound, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \TODO{cite}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
 
 The GMM assumes that the probability distribution of the observed parameters takes the following parametric form
 \newcommand{\nnn}{\mathcal N}
@@ -188,7 +171,7 @@ The GMM assumes that the probability distribution of the observed parameters tak
 	\label{eq:gmm}
 	p(\mathbf{x}) = \sum_{i=1}^{m} \alpha_i \nnn(\mathbf{x}; \boldsymbol{\mu}_i, \mathbf{\Sigma}_i)
 \end{equation}
-where $m$ is the number of mixture models and $\nnn(\mathbf{x}; \boldsymbol{\mu}_i, \mathbf{\Sigma}_i)$ denotes the p-dimensional normal distribution\index{Normal Distribution} \cite{statistikk} with the mean vector $\boldsymbol{\mu}_i$ and covariance matrix $\mathbf{\Sigma}_i$ defined by
+where $m$ is the number of mixture models and $\nnn(\mathbf{x}; \boldsymbol{\mu}_i, \mathbf{\Sigma}_i)$ denotes the p-dimensional normal distribution \cite{statistikk} with the mean vector $\boldsymbol{\mu}_i$ and covariance matrix $\mathbf{\Sigma}_i$ defined by
 \begin{equation}
 	\nnn(\mathbf{x}; \boldsymbol{\mu}, \mathbf{\Sigma}) = \frac{1}{\sqrt{(2\pi)^p\abs{\mathbf{\Sigma}}}} \exp\sbrackets{-\frac{1}{2} (\mathbf{x} -\boldsymbol{\mu})^T \mathbf{\Sigma}^{-1} (\mathbf{x} -\boldsymbol{\mu})}
 \end{equation}
@@ -227,23 +210,18 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 \section{Dynamic Time Warping} % (fold)
 \label{sec:dynamic_time_warping}
 \newcommand{\ttt}{\mathcal T}
-\newcommand{\auto}{\boldsymbol \gamma}
-\newcommand{\Auto}{\boldsymbol \Gamma}
+\newcommand{\auto}{R}
+\newcommand{\Auto}{\boldsymbol R}
 
-\begin{itemize}
-	\item open ends only for target.
-	\item no skipping for source (target?)
-\end{itemize}
-
-Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping\index{Dynamic time warping} (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance}\index{Itakura distance} \cite{itakura90},
+Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance} \cite{itakura90},
 \newcommand{\ita}{d_{I}}
 \begin{definition}
-	Given two vectors $\mathbf{a}$ and $\mathbf{b}$ of LP coefficients from a LPC analysis of $\mathbf{x}$ and $\mathbf{y}$, and the auto-correlation of $\mathbf{x}$, $\auto_\mathbf{x}$. The Itakura distance between the two LP vectors is
+	Given two vectors $\mathbf{x}$ and $\mathbf{y}$ of LP coefficients from a LPC analysis of $\mathbf{a}$ and $\mathbf{b}$, and the autocorrelation of $\mathbf{a}$, $\auto_a$. The Itakura distance between the two LP vectors is
 	\begin{equation}
 		\label{eq:itakura_distance}
 		\begin{split}
-			\ita(\mathbf{a},\mathbf{b}) = & \log\pbrackets{\frac{\mathbf{b}^T \ttt(\auto_{\mathbf{x}}) \mathbf{b}}{\mathbf{a}^T \ttt(\auto_{\mathbf{x}}) \mathbf{a}}} \\
-			 = & \log\pbrackets{\mathbf{b}^T \ttt(\auto_{\mathbf{x}}) \mathbf{b}}, \quad \mathbf{a}_0 = 1
+			\ita(\mathbf{x},\mathbf{y}) = & \log\pbrackets{\frac{\mathbf{y}^T \ttt(\auto_a) \mathbf{y}}{\mathbf{x}^T \ttt(\auto_a) \mathbf{x}}} \\
+			 = & \log\pbrackets{\mathbf{y}^T \ttt(\auto_a) \mathbf{y}}, \quad \mathbf{x}_0 = 1
 		\end{split}
 	\end{equation}
 \end{definition}
@@ -259,23 +237,23 @@ where $\ttt$ is the Toeplitz-matrix defined as
 	\end{bmatrix}
 \end{equation}	
 
-The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{x}$ signal with the source coefficients $\mathbf{a}$. For normalized coefficients, $\mathbf{a}_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of the $\mathbf{x}$ with the coefficients $\mathbf{b}$. 
+The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{a}$ with the source coefficients $\mathbf{x}$. For normalized coefficients, $\mathbf{x}_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of $\mathbf{a}$ with the coefficients $\mathbf{y}$. 
 
-The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{A}=\sbrackets{\mathbf{a}_1,\mathbf{a}_2,\dotsc,\mathbf{a}_N}^T$ and $\mathbf{B}=\sbrackets{\mathbf{b}_1,\mathbf{b}_2,\dotsc,\mathbf{b}_M}^T$. \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
+The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{X}=\sbrackets{\mathbf{x}_1,\mathbf{x}_2,\dotsc,\mathbf{x}_N}^T$ and $\mathbf{Y}=\sbrackets{\mathbf{y}_1,\mathbf{y}_2,\dotsc,\mathbf{y}_M}^T$. Equation \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
 \begin{equation}
-	\mathbf{D}(i,j) = \log\pbrackets{\mathbf{b}_j^T \ttt(\auto_{\mathbf{x}_i}) \mathbf{b}_j}
+	\mathbf{D}(i,j) = \log\pbrackets{\mathbf{y}_j^T \ttt(\auto_{a_i}) \mathbf{y}_j}
 \end{equation}
 
-The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
+The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek} \TODO{Check textbook for syntax}
 \newcommand{\dmin}{\textbf{D}_{min}}
 \begin{equation}
 	\label{eq:dtw_recursion}
 	\begin{split}
-		\dmin(i,j) = \min \bigl[& \dmin(i-1,j-1)+\alpha \ita(\mathbf{a}_i,\mathbf{b}_j),\\
-		& \dmin(i-1,j)+\beta \ita(\mathbf{a}_i,\mathbf{b}_j),\\
-		& \dmin(i,j-1)+\beta \ita(\mathbf{a}_i,\mathbf{b}_j),\\
+		\dmin(i,j) = \min \bigl[& \dmin(i-1,j-1)+\alpha \ita(\mathbf{y}_i,\mathbf{y}_j),\\
+		& \dmin(i-1,j)+\beta \ita(\mathbf{x}_i,\mathbf{y}_j),\\
+		& \dmin(i,j-1)+\beta \ita(\mathbf{x}_i,\mathbf{y}_j),\\
 		% & \dmin(i-2,j-1)+\gamma \ita(\mathbf{a}_i,\mathbf{b}_j),\\
-		& \dmin(i-1,j-2)+\gamma \ita(\mathbf{a}_i,\mathbf{b}_j)\bigr]		
+		& \dmin(i-1,j-2)+\gamma \ita(\mathbf{x}_i,\mathbf{y}_j)\bigr]		
 	\end{split}
 \end{equation}
 where $\mathbf{a}_i$ and $\mathbf{b}_j$ denotes the LP coefficients of segment $i$ and $j$, respectively, from the two signals. The problem is broken down into simpler subproblems, hence dynamic programming. 
@@ -312,59 +290,53 @@ The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}.
 \end{figure}
 The weights $\alpha,\beta$ and $\gamma$, called local constraints, are optional and could have a significant effect on the outcome. For instance, the $\beta$ weights can be assigned a larger value to avoid multiple skipping or repetition of frames. Global constraints can be applied in addition to the local constraints which limits the resulting path by borders to guarantee a maximum modification of the signals.
 
-The indices in the resulting shortest path are used to duplicate and/or delete frames in the source signal to get a time-aligned version of the source matrix of the same size as the target matrix.
-
-\TODO{check correct use of source and target}
-
 \begin{remark}
-There is no option for the path $\dmin(i-2,j)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors can be used to represent the mapping. This is important because in source speaker is used as input in the transformation function.
+There is no option for the path $\dmin(i-2,j)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors can be used to represent the mapping. This is important because in source speaker is used as input in the transformation function. For the same reason, the global constraints can not allow open ends for the source vector since this will in practise mean stripping off the edges of the signal.
 \end{remark}
+
+The indices in the resulting shortest path are used to duplicate and/or delete frames in the target signal to get a time-aligned version of the target matrix which is the best match to the LP matrix of the source speaker.
 % section Dynamic Time Warping (end)
 
 
 
-\section{Transformation function} % (fold)
+\section{Transformation Function} % (fold)
 \label{sec:transformation_function}
-Given a set of time-aligned source and target vectors, $\mathbf{x}$ and $\mathbf{y}$, and a GMM fitted to a joint vector $\mathbf{z}=\sbrackets{\mathbf{x},\mathbf{y}}$, we want to define a transformation function which yields the most likely target vector given a new source vector
+Given a set of time-aligned LP vectors of the source and target speaker, $\mathbf{x}$ and $\mathbf{y}$, and a GMM fitted to a joint vector $\mathbf{z}=\sbrackets{\mathbf{x},\mathbf{y}}$, we want to define a transformation function which yields the most likely target vector given a new source vector
 \newcommand{\fff}{\mathcal F}
 \begin{equation}
 	\fff(\mathbf{x}) = E[\mathbf{y}\vert \mathbf{x}]
 \end{equation}
 If we assume that the source and target vectors are jointly Gaussian, the likelihood of $\mathbf{y}$ given $\mathbf{x}$ for a single component GMM can be expressed as \cite{kay93}
 \begin{equation}
-	E[\mathbf{y}\vert \mathbf{x}] = \boldsymbol{\mu}^y + \mathbf{\Sigma}^{yx} \mathbf{\Sigma}^{xx^{-1}} (\mathbf{x}-\boldsymbol{\mu}^x)
+	E \sbrackets{\mathbf{y}\vert \mathbf{x}} = \boldsymbol{\mu}^y + \mathbf{\Sigma}^{yx} \pbrackets{\mathbf{\Sigma}^{xx}}^{-1} (\mathbf{x}-\boldsymbol{\mu}^x)
 \end{equation}
 where $E$ denotes the expectation, $\boldsymbol{\mu}$ is the mean vector
 \begin{equation}
-	\boldsymbol{\mu}^y = E[\mathbf{y}]
+	\boldsymbol{\mu}^y = E\sbrackets{\mathbf{y}}
 \end{equation}
 and $\mathbf{\Sigma}$ is the cross-covariance matrix
 \begin{equation}
-	\mathbf{\Sigma}^{yx} = E[(\mathbf{y}-\boldsymbol{\mu}^y)(\mathbf{x}-\boldsymbol{\mu}^x)^T]
+	\mathbf{\Sigma}^{yx} = E \sbrackets{(\mathbf{y}-\boldsymbol{\mu}^y)(\mathbf{x}-\boldsymbol{\mu}^x)^T}
 \end{equation}
 
-Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function\index{Transformation function}
+Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function
 \begin{definition}
 	Given a Gaussian mixture model trained with a joint vector of time aligned feature vectors $\mathbf{z} = \sbrackets{\mathbf{x},\mathbf{y}}$ and a new feature vector $\mathbf{x}$ not contained in the training set of the GMM. The most likely correspond feature vector $\mathbf{y}$ can be obtained by
 	\begin{equation}
 		\label{eq:conversion_function}
 		\begin{split}
-			\fff(\mathbf{x}) =& E[\mathbf{y}\vert \mathbf{x}]\\
-			=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x})[\boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \pbrackets{\mathbf{\Sigma}_i^{xx}}^{-1} (\mathbf{x}-\boldsymbol{\mu}_i^x)]
+			\fff(\mathbf{x}) =& E \sbrackets{\mathbf{y}\vert \mathbf{x}}\\
+			=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x})\sbrackets{ \boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \pbrackets{\mathbf{\Sigma}_i^{xx}}^{-1} (\mathbf{x}-\boldsymbol{\mu}_i^x)}
 		\end{split}
 	\end{equation}
 \end{definition}
 
-where the likelihoods are weighted with the conditional probabilities of $\mathbf{x}$ belonging to component $C$. Note that \eqref{eq:conversion_function} is not dependent of the target vector $\mathbf{y}$.
-
-
-\subsection{Full Covariance Matrix} % (fold)
-\label{sub:full_covariance_matrix}
-
-% subsection Full Covariance Matrix (end)
+where the likelihoods are weighted with the conditional probabilities of $\mathbf{x}$ belonging to component $C$. 
 
 \subsection{Diagonal Covariance Matrix} % (fold)
 \label{sub:diagonal_covariance_matrix}
+To decrease the computational complexity, the covariance matrix in the GMM can be constrained to be diagonal, if it is a good assumption with the signal representation in question. Cepstrum is such a representation. However, by constraining the covariance matrix to be diagonal we have to estimate the cross-covariance $\mathbf{\Sigma}^{yx}$.
+
 \begin{figure}[htbp]
 	\centering
 	\begin{tabular}[h]{c}
@@ -377,17 +349,17 @@ where the likelihoods are weighted with the conditional probabilities of $\mathb
 	\label{fig:VC_training_diag}
 \end{figure}
 
-The mean and covariance of the source vector $\mathbf{x}$ are derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\Sigma}^{yx}$ are unknown and need to be estimated such as the total squared conversion error $\epsilon$ is minimised
+If we train the GMM with $\mathbf{Z}=\mathbf{X}$, the mean $\boldsymbol{\mu}^x$ and covariance of the source vector $\boldsymbol{\Sigma}^{xx}$ can be derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\Sigma}^{yx}$ are unknown and need to be estimated. This can be achieved in a training phase by minimising the total squared conversion error
 \begin{equation}
 	\label{eq:conversion_error}
 	\epsilon = \sum_{t} \norm{\mathbf{y}_t - \mathcal{F}(\mathbf{x}_t)}^2
 \end{equation}
 
-This can be achieved by reformulating equation \eqref{eq:conversion_function} into a single matrix equation
+Equation \eqref{eq:conversion_function} can be reformulated to a single matrix equation
 \begin{equation}
 	\label{eq:least_square_problem}
 	\begin{split}
-		\mathbf{Y} = &\mathbf{P}\boldsymbol{\mu^y} + \mathbf{D}\mathbf{\Sigma}^{yx} \\
+		\mathbf{Y} = &\mathbf{P}\boldsymbol{\mu}^y + \mathbf{D}\mathbf{\Sigma}^{yx} \\
 		= & \begin{bmatrix}
 			\mathbf{P}& \vdots &\mathbf{D}
 		\end{bmatrix}
@@ -489,31 +461,33 @@ Equation \eqref{eq:least_square_problem} is a least-square problem which can be 
 
 \subsection{Filter Transformation} % (fold)
 \label{sub:filter_transformation}
+\TODO{input: gmm $[X_{cc},Y_{cc}]$,V,Gamma,sigma diag,wavfile}
 % subsection Filter Transformation (end)
 
 \subsection{Pitch Transformation} % (fold)
 \label{sub:pitch_transformation}
 
+\TODO{input: gmm $[Y_{cc},f_0]$, $\hat{Y}_{cc}$, $\bar{f}_0$, voiced index. insert $\bar{f}_0$ for unvoiced frames}
 
 
 The transformation function \eqref{eq:conversion_function} can be utilised in the pitch transformation if we train the GMM with a joint vector
 \begin{equation}
 	\mathbf{z} = \begin{bmatrix}
-		{\mathbf{y}^T,\mathbf{x}}
+		{\mathbf{y}^T,f_0}
 	\end{bmatrix}^T 
 \end{equation}
-where $\mathbf{x} = \begin{bmatrix}x_1,x_2,\dotsc,x_N \end{bmatrix}$ is a sequence of pitch values and $\mathbf{y} = \begin{bmatrix}y_1,y_2,\dotsc,y_N \end{bmatrix}$ is the corresponding set of spectrum coefficients, \eg MFCC \cite{najjary03new}. Given a vector of transformed spectrum coefficients $\mathbf{y}$, the corresponding pitch values can be estimated with the transformation function 
+where $\mathbf{x} = \begin{bmatrix}x_1,x_2,\dotsc,x_N \end{bmatrix}$ is a sequence of pitch values and $\mathbf{y} = \begin{bmatrix}y_1,y_2,\dotsc,y_N \end{bmatrix}$ is the corresponding set of spectrum coefficients, \eg CC \cite{najjary03new}. Given a vector of transformed spectrum coefficients $\mathbf{y}$, the corresponding pitch values can be estimated with the transformation function 
 \begin{equation}
 	\label{eq:pitch_transformation}
 	\begin{split}
-		\hat{\mathbf{x}} =& \fff(\mathbf{y})\\
-		=& \sum_{i=1}^{m}P(C_i \vert \mathbf{y})[\boldsymbol{\mu}_i^x + \mathbf{\Sigma}_i^{xy} \pbrackets{\mathbf{\Sigma}_i^{yy}}^{-1} (\mathbf{y}-\boldsymbol{\mu}_i^y)]
+		\hat{\mathbf{f_0}} =& \fff(\mathbf{y})\\
+		=& \sum_{i=1}^{m}P(C_i \vert \mathbf{y}) \sbrackets{\boldsymbol{\mu}_i^x + \mathbf{\Sigma}_i^{xy} \pbrackets{\mathbf{\Sigma}_i^{yy}}^{-1} (\mathbf{y}-\boldsymbol{\mu}_i^y)}
 	\end{split}
 \end{equation}
 
 Pitch normalization due to importans
 \begin{equation}
-	F_{log} = \log \pbrackets{F_0/\bar{F_0}}
+	f_{log} = \log \pbrackets{f_0/\bar{f_0}}
 \end{equation}
 
 
@@ -521,7 +495,23 @@ Pitch normalization due to importans
 
 
 
-Source mapping intends to change to prosody of the source speaker to match a target speaker. The goal is to alter the pitch and duration of the signal without affecting the spectral characteristics. 
+
+
+% subsection Pitch Transformation (end)
+
+% section Transformation Function (end)
+
+
+\section{Synthesis} % (fold)
+\label{sec:synthesis}
+
+\subsection{LP Filtering} % (fold)
+\label{sub:lp_filtering}
+
+% subsection LP filtering (end)
+\subsection{PSOLA} % (fold)
+\label{sub:psola}
+Pitch synchronous overlap-and-add (PSOLA) procedure can modify the pace and/or the pitch of a speech signal. PSOLA splits the signals into two pitch periods long windowed parts and re-synthesises the parts with the overlap-add procedure, by duplicating or deleting frames to alter the pace of the voice and adjusting the spacing of windows to alter the pitch. The goal is to alter the pitch and duration of the signal without affecting the spectral characteristics. 
 
 If the source is voiced it can be represented as a function of pitch cycles
 \begin{equation}
@@ -542,15 +532,148 @@ If we replace the source timing instances, $t_x$, with the ones from the target,
 \end{equation}
 The target pitch cycles, $y$, can be obtained by mapping the closest corresponding pitch cycles from $x$ by \eg DTW. The presented method will work for unvoiced speech as well if the spacing is smaller than 10 ms \cite{taletek}. 
 \cite{moulines95}
+% subsection PSOLA (end)
+% section Synthesis (end)
 
-% subsection Pitch Transformation (end)
 
-Correlation matrix
+\section{Robustness} % (fold)
+\label{sec:robustness}
+To increase the performance of the transformation... the signal can be altered...
+
+\subsection{Endpoint Detection} % (fold)
+\label{sub:endpoint_detection}
+To exclude non-informative information, like silence in the beginning and end of a sentence, could enhance the transformation because it excludes unwanted training data. If the signal to noise ratio is high it is a trivial task. However, if there is some background noise it is not that easy to detect the boundaries of the speech utterance. The basic approach is the derive the energy of the signal and choose a boundary for how much energy there is in the utterance and clip the signal where the energy crosses this boundary. But if there is a peak in the noise level when the speaker is silent, the peak could be recognised as the start of a sentence.
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=.8\textwidth]{fig/endpoint_detection}
+		\caption{Endpoint detection with utterance boundary ITU and silence boundary ITL \cite{rabiner75}.}
+		\label{fig:endpoint_detection}
+	\end{center}
+\end{figure}
+\TODO{replace figure?}
+
+A more robust method of endpoint detection proposed by \cite{rabiner75} is to locate where we know for with a higher probability where this an utterance and backtrace from this point to the silence boundary, illustrated in Figure~\ref{fig:endpoint_detection}. Another technique for avoiding peak-noise error is the use of short-time energy. Instead of calculating the energy in each sample separately we can introduce a memory component to smooth out the energy contour.
+\begin{equation}
+	E(n)=\sum_{j=0}^{n}\alpha^j x^2(n-j)
+	\label{eq:basic_ste}
+\end{equation}
+where $\alpha < 1$ decides how much information from the previous samples to include in the current energy value. Equation \eqref{eq:basic_ste} can be simplified to
+\begin{equation}
+	\begin{split}
+		E(n+1)=& \sum_{j=0}^{n+1}\alpha^jx^2(n+1-j)\\
+		=& x^2(n+1)+\sum_{j=1}^{n+1}\alpha^jx^2(n+1-j)\\
+		=& x^2(n+1)+\sum_{k=0}^{n}\alpha^{k+1} x^2(n-k)\\
+		=& x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0)\\
+	\end{split}
+	\label{eq:short_time_energy}
+\end{equation}
+
+By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpoints can be detected by choosing a utterance boundary of \eg $ITU=0.02$ and a lower silence boundrary, \eg $ITL=0.002$. The algorithm will seek for the first sample which exceeds $ITU$ and backtrace from this sample to the first sample with lower energy than $ITL$.
+% subsection Endpoint detection (end)
+
+\subsection{Pitch Prediction} % (fold)
+\label{sub:detection_of_voicing}
+\begin{itemize}
+	\item why exclude voiced segments
+\end{itemize}
+There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+
+The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled. Then the signal is passed through an inverse fourth-order LPC filter to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the performance we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise.
+
+% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
+% \begin{equation}
+% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
+% 		\geq k, &\text{ unvoiced }\\
+% 		< k, &\text{ voiced }\\
+% 	\end{cases}
+% \end{equation}
+% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
+% subsection Detection of voicing (end)
+
+\subsection{Pre-emphesis} % (fold)
+\label{sub:pre_emphesis}
+Better match in high-frequency. best for $f_s$ greater than 16 kHz??
+% subsection Pre-emphesis (end)
+% section Robustness (end)
+
+\section{Objective Result Metrics} % (fold)
+\label{sec:objective_metrics}
+Objective vs subjective
+
+\subsection{Frequency Metrics} % (fold)
+\label{sub:frequency_metrics}
+Itakura distance \eqref{eq:itakura_distance} is a distance metric to measure the difference between LPC vectors. Normalized cepstral distance (NCD\abbrev{NCD}{Normalized cepstral distance}) is another metric useful in measuring the quality of the frequency transformation. It is relative distance measure in the cepstrum domain, comparing the difference between the cepstral coefficients of the source and target speaker, to the transformed coefficients and the target coefficients.
+\begin{definition}
+	The Normalized cepstral distance between a set of transformed vectors and their corresponding target vectors is
+	\begin{equation}
+		e(\hat{c}^t,c^t) = \frac{{\sum}_{i=2}^{13}(\hat{c}_{i}^t-c_{i}^t)^2}{\sum_{j=2}^{13}(c_{j}^s-c_{j}^t)^2}
+	\end{equation}
+	% \begin{equation}
+	% 	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
+	% \end{equation}	
+\end{definition}
+
+While NCD measures the improvement of the transform relative to untransformed source vectors, the $l_2$ metric in the frequency domain measures deviation of the transformed spectrum to the target spectrum.
+\begin{definition}
+	Given the power spectrum $S(\omega)$ of signal
+\begin{equation}
+	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
+\end{equation}
+the $l_2$ metric is \cite{gray76} \TODO{reformuler}
+\begin{equation}
+	d_2(a,b) = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S_a(\omega)}{S_b(\omega)}\right\rvert^2 d\omega
+\end{equation}
+in decible 
+\begin{equation}
+	l_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
+\end{equation}
+\end{definition}
+
+The factor $4.343$ comes from the conversion from natural logarithm to decibel
+\begin{equation}
+	10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
+\end{equation}
+% subsection Frequency metrics (end)
+
+\subsection{Pitch Metrics} % (fold)
+\label{sub:pitch_metrics}
+\begin{equation}
+	\Delta f_0 = \sum_{i} \abs{f^t_0 (i)-\hat{f}^t_0 (i)}
+\end{equation}
+
+Normalized
+\begin{equation}
+	\Delta f_0 = \frac{\sum_{i} \abs{f^t_0 (i)-\hat{f}^t_0 (i)}}{\sum_{i} \abs{f^t_0 (i)-f^s_0 (i)}}
+\end{equation}
+
+% subsection Pitch metrics (end)
+% section Objective result metrics (end)
+
+
+\section{div} % (fold)
+\label{sec:div}
+modify freq spectra. Pull poles closer to origo.
+
+\begin{equation}
+	A(z) = 1+ \sum_{i} a_i z^{-i} = \prod_i (1-\rho_i z^{-i})
+\end{equation}
+\begin{equation}
+	A'(z) = 1+ \sum_{i} a_i \alpha^i z^{-i} = \prod_i (1-\rho_i \alpha^i z^{-i})
+\end{equation}
+
+
+
+
+Itakura distance implementation. Correlation matrix
 \begin{equation}
 	R(i,j) = \frac{\Sigma(i,j)}{\sqrt{\Sigma(i,i)\Sigma(j,j)}}
 \end{equation}
 The process of filter transformation consists of altering the filter coefficients of the source, to match the target coefficients. 
 
+
+
+LSF transformation
 \begin{equation}
 	\begin{split}
 		\fff=\begin{bmatrix}
@@ -611,116 +734,6 @@ The process of filter transformation consists of altering the filter coefficient
 			x_p - \mu_p^x \\
 		\end{bmatrix}\Bigg)
 	\end{split}
-\end{equation}
-
-
-
-
-% section Transformation Function (end)
-
-\section{Robustness} % (fold)
-\label{sec:robustness}
-To increase the performance of the transformation... the signal can be altered...
-
-\subsection{Endpoint detection} % (fold)
-\label{sub:endpoint_detection}
-To exclude non-informative information, like silence in the beginning and end of a sentence, could enhance the transformation because it excludes unwanted training data. If the signal to noise ratio is high it is a trivial task. However, if there is some background noise it is not that easy to detect the boundaries of the speech utterance. The basic approach is the derive the energy of the signal and choose a boundary for how much energy there is in the utterance and clip the signal where the energy crosses this boundary. But if there is a peak in the noise level when the speaker is silent, the peak could be recognised as the start of a sentence.
-
-\begin{figure}[htbp]
-	\begin{center}
-		\includegraphics[width=.8\textwidth]{fig/endpoint_detection}
-		\caption{Endpoint detection with utterance boundary ITU and silence boundary ITL \cite{rabiner75}.}
-		\label{fig:endpoint_detection}
-	\end{center}
-\end{figure}
-\TODO{replace figure?}
-
-A more robust method of endpoint detection proposed by \cite{rabiner75} is to locate where we know for with a higher probability where this an utterance and backtrace from this point to the silence boundary, illustrated in Figure~\ref{fig:endpoint_detection}. Another technique for avoiding peak-noise error is the use of short-time energy. Instead of calculating the energy in each sample separately we can introduce a memory component to smooth out the energy contour.
-\begin{equation}
-	E(n)=\sum_{j=0}^{n}\alpha^j x^2(n-j)
-	\label{eq:basic_ste}
-\end{equation}
-where $\alpha < 1$ decides how much information from the previous samples to include in the current energy value. Equation \eqref{eq:basic_ste} can be simplified to
-\begin{equation}
-	\begin{split}
-		E(n+1)=& \sum_{j=0}^{n+1}\alpha^jx^2(n+1-j)\\
-		=& x^2(n+1)+\sum_{j=1}^{n+1}\alpha^jx^2(n+1-j)\\
-		=& x^2(n+1)+\sum_{k=0}^{n}\alpha^{k+1} x^2(n-k)\\
-		=& x^2(n+1)+\alpha E(n), \quad E(0)=x^2(0)\\
-	\end{split}
-	\label{eq:short_time_energy}
-\end{equation}
-
-By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpoints can be detected by choosing a utterance boundary of \eg $ITU=0.02$ and a lower silence boundrary, \eg $ITL=0.002$. The algorithm will seek for the first sample which exceeds $ITU$ and backtrace from this sample to the first sample with lower energy than $ITL$.
-% subsection Endpoint detection (end)
-
-\subsection{Pitch prediction} % (fold)
-\label{sub:detection_of_voicing}
-\begin{itemize}
-	\item why exclude voiced segments
-\end{itemize}
-There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
-
-The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled. Then the signal is passed through an inverse fourth-order LPC filter to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the performance we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise.
-
-% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
-% \begin{equation}
-% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
-% 		\geq k, &\text{ unvoiced }\\
-% 		< k, &\text{ voiced }\\
-% 	\end{cases}
-% \end{equation}
-% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
-% subsection Detection of voicing (end)
-
-\subsection{Pre-emphesis} % (fold)
-\label{sub:pre_emphesis}
-Better match in high-frequency. best for $f_s$ greater than 16 kHz??
-% subsection Pre-emphesis (end)
-% section Robustness (end)
-
-\section{Objective result metrics} % (fold)
-\label{sec:objective_metrics}
-
-
-\begin{definition}
-	Normalized cepstral distance (NCD)\index{Normalized cepstral distance}\abbrev{NCD}{Normalized cepstral distance}
-\begin{equation}
-	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
-\end{equation}
-\end{definition}
-
-
-\begin{definition} $l_2$ metric \cite{gray76}
-\begin{equation}
-	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
-\end{equation}
-\begin{equation}
-	d_2(a,b) = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S_a(\omega)}{S_b(\omega)}\right\rvert^2 d\omega
-\end{equation}
-\begin{equation}
-	l_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
-\end{equation}
-\end{definition}
-
-The factor $4.343$ comes from the natural logarithm to decibel conversion
-\begin{equation}
-	10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
-\end{equation}
-% section Objective result metrics (end)
-
-
-
-
-\section{div} % (fold)
-\label{sec:div}
-modify freq spectra. Pull poles closer to origo.
-
-\begin{equation}
-	A(z) = 1+ \sum_{i} a_i z^{-i} = \prod_i (1-\rho_i z^{-i})
-\end{equation}
-\begin{equation}
-	A'(z) = 1+ \sum_{i} a_i \alpha^i z^{-i} = \prod_i (1-\rho_i \alpha^i z^{-i})
 \end{equation}
 % section div (end)
 
