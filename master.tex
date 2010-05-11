@@ -6,34 +6,36 @@
 %
 \documentclass[11pt,a4paper,twoside]{report} 
 \usepackage{mystyle}
-
-\makeindex
+% \makeindex
 
 
 
 % ---------- BEGIN DOCUMENT --------------
 \begin{document}
-% \input{tex/titlepage.tex}
-% \pagenumbering{Roman}
+\input{tex/titlepage.tex}
+\pagenumbering{Roman}
 % \input{tex/titlepage_sub.tex}
-% \cleardoublepage
+\cleardoublepage
+\input{tex/problem_desc.tex}
+\clearpage
+\input{tex/preface.tex}
 \input{tex/abstract.tex}
-% \pagenumbering{roman}
-% \cleardoublepage
+\pagenumbering{roman}
+\cleardoublepage
 \tableofcontents
-% \listoffigures
-% \addcontentsline{toc}{chapter}{List of Figures}
-% \listoftables
-% \addcontentsline{toc}{chapter}{List of Tables}
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
 % \Listofabbrev
-% \cleardoublepage
+\cleardoublepage
 % ---------- INTRODUCTION ----------
-\pagenumbering{arabic}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[RE]{{\nouppercase{\rightmark}}}
-\fancyhead[LO]{{\nouppercase{\leftmark}}}
+\fancyhead[RE]{{\nouppercase{\leftmark}}}
+\fancyhead[LO]{{\nouppercase{\rightmark}}}
 \cfoot{\thepage}
+\pagenumbering{arabic}
 \input{tex/introduction.tex}
 % \cleardoublepage
 \input{tex/theory.tex}
@@ -44,7 +46,7 @@
 % \cleardoublepage
 \input{tex/discussion.tex}
 % \cleardoublepage
-% \input{tex/conclusion.tex}
+\input{tex/conclusion.tex}
 % \cleardoublepage
 
 % ---------- BIBLIOGRAPHY ----------

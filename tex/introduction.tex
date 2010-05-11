@@ -4,34 +4,32 @@
 
 \section{Definition} % (fold)
 \label{sec:definition}
-Voice transformation, or conversion, refers to the various modifications that can be applied to the sound produced by a person, either speaking or singing \cite{stylianou08}. More specific, in this paper voice transformation refers to the process of modifying the speech signal from a person so that it sounds like a certain other person has produced it. 
+Voice transformation, or conversion, refers to the various modifications that can be applied to the sound produced by a person, either speaking or singing \cite{stylianou08}. More specific, in this thesis voice transformation refers to the process of modifying the speech signal from a person so that it sounds like a certain other person has produced it. 
 % section Definition (end)
 
 \section{Motivation} % (fold)
 \label{sec:motivation}
 Users of a text-to-speech (TTS\abbrev{TTS}{text-to-speech}) system often want to have a choice between several synthetic voices, if they are not satisfied with the default voice. To create a new voice for a TTS system from scratch requires a lot of work and money. If it was possible to create only one synthetic voice and then transform that voice to other voices, with only a few minutes of  training data, the system provider could produce any number of voices with ease. 
 
-Another application of voice transformation is speech prosthesis. If a person has limited ability of producing speech or is going to loose his ability to speak, he can record some utterances of his voice and create a speech synthesis with his own voice.
+Another application of voice transformation is speech prosthesis. If a person has limited ability of producing speech or is going to loose his ability to speak, he can record some utterances of his voice and create a speech synthesis with his own voice. A similar application is synthesising voiced of celebrities, \eg movie stars, who has passed away or lost their voice.
 % section Motivation (end)
 
 \section{Modification Methods} % (fold)
 \label{sec:synthesis_methods}
-The production of speech can be modelled as a source of glottal excitation passing through the vocal tract which acts as a filter, called the source-filter model \cite{taletek}. The filter is a linear time-varying filter that can be assumed to be stationary for short time intervals, \eg 10 ms. The signal can be separated into a source and a filter by applying a linear prediction (LP \abbrev{LP}{linear prediction}) analysis and subtracting the predicted signal from the real signal. Yielding a filter described as LP coefficients and the source as the excitation from the subtracted signal.
+The production of speech can be modelled as a source of glottal excitation passing through the vocal tract which acts as a filter, called the source-filter model \cite{taletek}. The filter is a linear time-varying filter that can be assumed to be stationary for short time intervals, \eg 10 ms. The signal can be separated into a source and a filter by conducting a linear prediction (LP \abbrev{LP}{linear prediction}) analysis and subtracting the predicted signal from the real signal. Yielding a filter described as LP coefficients and the source as the excitation from inverse filtering of the LP filters.
 
-% \subsection{Source Modification} % (fold)
-% \label{sub:source_modification}
-The source signal can be modelled as white noise for unvoiced speech and a pulse train for voiced speech. Source modifications can modify the pace, pitch and intensity of a voice. Time- and pitch-scale modifications can be done with the pitch synchronous overlap and add (PSOLA) procedure. PSOLA splits the signals into two pitch periods long windowed parts and re-synthesises the parts with the overlap-add procedure, by duplicating or deleting frames to alter the pace of the voice and adjusting the spacing of windows to alter the pitch.
-\TODO{What is pitch?}
-% subsection Source Modification (end)
+The excitation signal can be modelled as white noise for unvoiced speech and a pulse train for voiced speech. Source modifications can modify the pace, pitch and intensity of a voice. Time- and pitch-scale modifications can be done with the pitch synchronous overlap and add (PSOLA) procedure. PSOLA splits the signals into two pitch periods long windowed parts and re-synthesises the parts with the overlap-add procedure, by duplicating or deleting frames to alter the pace of the voice and adjusting the spacing of windows to alter the pitch.
 
-% \subsection{Filter Modification} % (fold)
-% \label{sub:filter_modification}
-One of the earliest implementations of speech transformation utilises vector quantization (VQ\abbrev{VQ}{vector quantisation}) for mapping spectral properties with discrete source and target classes \cite{abe88}. By training codebooks to represent which filter characteristics match of the source and target speaker, the transformation is simply to look up in the codebook and map the filter parameters. In contrast, the Gaussian mixture model (GMM\abbrev{GMM}{Gaussian mixture model}) method uses continuous probability density mapping \cite{stylianou98}. This method transforms speaker specific features from the source speaker to the target speaker according to a transformation function. Filter modifications can modify the magnitude spectrum of the frequency response of the vocal tract, which carries information of speaker individuality \cite{stylianou09,nguyen09}. The phase is not altered in this approach, which is unfortunate for the quality of the transformation. Another mapping approach is the use of Artificial Neural Networks (ANN\abbrev{ANN}{artificial neural networks}) that tries to mimic the computational mechanism of the human brain \cite{desai09,young75}. 
-% subsection Filter Modification (end)
+One of the earliest implementations of speech transformation utilises vector quantization (VQ\abbrev{VQ}{vector quantisation}) for mapping spectral properties with discrete source and target classes \cite{abe88}. By training codebooks to represent a mapping of corresponding filter coefficients from the source and target speaker, the transformation is simply to look up in the codebook and map the filter parameters. In contrast, the Gaussian mixture model (GMM\abbrev{GMM}{Gaussian mixture model}) method utilises continuous probability density mapping \cite{stylianou98}. This method transforms speaker specific features from the source speaker to the target speaker according to a probabilistic transformation function. Filter modifications can modify the magnitude spectrum of the frequency response of the vocal tract, which carries information of speaker individuality \cite{stylianou09,nguyen09}. The phase is not altered in this approach, which is unfortunate for the quality of the transformation. Another mapping approach is the use of Artificial Neural Networks (ANN\abbrev{ANN}{artificial neural networks}) that tries to mimic the computational mechanism of the human brain \cite{desai09,young75}. 
 
-% \subsection{Voice Transformation} % (fold)
-% \label{sub:voice_transformation}
-Voice transformation is usually done by a combination of source and filter modifications. However, this paper will not cover source modifications.
-% subsection Voice Transformation (end)
-% section Synthesis methods (end)
+Pitch transformation can be performed in a similar manner as the filter transformation by transforming the fundamental frequency $F_0(t)$. Voice transformation in this thesis is a combination of pitch and filter modifications to transform the voice characteristics of a source speaker to a specific target speaker. 
+% section Modification Methods (end)
+
+\section{Structure and Goal of This Thesis} % (fold)
+\label{sec:structure_and_goal_of_this_thesis}
+the goals...
+
+This thesis is structured as follows. The background theory and concepts for carrying out the experiments are explained in Chapter~\ref{cha:theory}. A more detailed explanation of how the system can be implemented is given in Chapter~\ref{cha:implementation}. Objective results are presented in Chapter~\ref{cha:results} and are further discussed in Chapter~\ref{cha:discussion}. The final chapter summarises the system implementation and tries to draw a conclusion.
+
+% section Structure and Goal of This Thesis (end)
 % chapter Introduction (end)

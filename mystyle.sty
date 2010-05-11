@@ -14,14 +14,20 @@
 % ---------- PACKAGES ----------
 % \usepackage[utf8]{inputenc} 
 % \usepackage[T1]{fontenc}
-% \usepackage[urw]{mathdesign} % utopia,garamond,charter
+% \usepackage{mathdesign} % utopia,garamond,charter
 % \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
 \usepackage{color}
 \usepackage[pdftex]{graphicx}
 \usepackage{fancyhdr}
-% \usepackage[expansion=false]{microtype}
+\usepackage[Glenn]{fncychap}
+% \usepackage{titlesec}
+% \titleformat{\chapter}[display]%             
+%     {\relax}{\raggedleft{\color{halfgray}\chapterNumber\thechapter} \\ }{0pt}%
+%     {\titlerule\vspace*{.9\baselineskip}\raggedright\spacedallcaps}[\normalsize\vspace*{.8\baselineskip}\titlerule]%
+
+\usepackage[expansion=false]{microtype}
 % \usepackage[firstpage]{draftwatermark}
 % \usepackage[firstpage]{xwatermark}
 \usepackage{booktabs} 		% Better rulers in tables
@@ -31,9 +37,10 @@
 \usepackage[all]{xy}		% XY pic
 \usepackage{subfigure}
 \usepackage[small,bf]{caption}
-\usepackage{schemabloc}	
+% \usepackage{schemabloc}	
 %\usepackage{sidecap} 
 \usepackage{appendix}
+\usepackage{ifsym}
 % \usepackage{makeidx}
 
 % ---------- HYPERREF ----------

@@ -1,6 +1,8 @@
 \chapter{Results} % (fold)
 \label{cha:results}
 
+some introduction...
+
 \section{Pitch and voiced/unvoiced detection} % (fold)
 \label{sec:pitch_and_voiced_unvoiced_detection}
 \begin{figure}[htbp]
@@ -10,11 +12,29 @@
 		\label{fig:voiced_detection}
 	\end{center}
 \end{figure}
+
+
+
 % section Pitch and voiced/unvoiced detection (end)
 
 
 \section{Pitch prediction} % (fold)
 \label{sec:pitch_prediction}
+Test conversion of $F_0$ with target $Y_{cc}$ as input to a 64 GMM.
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Pitch prediction with 10 000 target cepstrum vectors as input}
+		\begin{tabular}{lrr}
+			\toprule
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
+			\midrule
+			Without smoothing & 11.2 Hz & 10.3 Hz\\
+			Smoothing applied & 10.7 Hz & 10.0 Hz \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:pitch_prediction_with_target_cempstrum_as_input}	
+\end{table}
 
 \begin{table}[htbp]
 	\begin{center}
@@ -70,7 +90,7 @@
 \label{tab:frequency_transform_for_unvoiced_frames}	
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[htbp]
 	\begin{center}
 		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, NCD only for converted frames}
 		\begin{tabular}{ll}
@@ -85,10 +105,64 @@
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
-\label{tab:frequency_transform_for_unvoiced_frames}	
+\label{tab:frequency_transform_for_unvoiced_frames2}	
 \end{table}
 
 Correct voiced detection has higher subjective quality but worse objective quality.
 
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames}
+		\begin{tabular}{ll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\midrule
+			itakura distance before & 0.6143 \\
+			itakura distance after & 0.5342 \\
+			L2 norm before & 4.7324\\
+			L2 norm after & 4.2756 \\
+			NCD & 0.6346 \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:frequency_transform_for_unvoiced_frames3}	
+\end{table}
+
+
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames, cc2lp by power spectrum, lp=10, cc=13}
+		\begin{tabular}{ll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\midrule
+			itakura distance before & 0.6143 \\
+			itakura distance after & 0.4160 \\
+			L2 norm before & 4.7324\\
+			L2 norm after & 3.6900 \\
+			NCD & 0.6346 \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:frequency_transform_powerspec}	
+\end{table}
+
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames, cc2lp by power spectrum, lp=10, cc=15}
+		\begin{tabular}{ll}
+			\toprule
+			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\midrule
+			itakura distance before & 0.6143 \\
+			itakura distance after & 0.3976 \\
+			L2 norm before & 4.7324\\
+			L2 norm after & 3.6075 \\
+			NCD & 0.6196 \\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}
+\label{tab:frequency_transform_powerspec2}	
+\end{table}
 % section Frequency Transformation (end)
 % chapter Results (end)

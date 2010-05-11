@@ -1,11 +1,12 @@
 \chapter{Theory} % (fold)
 \label{cha:theory}
+
 The basic idea of the voice transformation is to make a linear prediction, LP, analysis of the signal and extract the estimate from the real signal to yield a source-filter separation, where the excitation represents the source and the LP coefficients represent the filter. The frequency spectra of the voice can be transformed by altering the filter coefficients to match the new voice, and the pitch can be transformed by performing the PSOLA technique on the excitation signal. The transformed excitation and LP coefficients are used in the inverse filter to synthesis the transformed voice, as depicted in Figure~\ref{fig:VC}.
 \begin{figure}[htbp]
   \begin{center}
   \begin{tabular}[h]{c}
 	\xymatrix{ 
-	\mathbf{x} \ar[rr] & \ar[d]\ar[r] &*+<5mm>[F-,]{1-A(z)}  \ar[r]^<(0.3){\boldsymbol{\epsilon}} &*+<5mm>[F-,]{\txt{PT}} \ar[r]  &*+<5mm>[F-,]{\frac{1}{1-\tilde{A}(z)}} \ar[r] & \mathbf{y}\\  % end line 1
+	\mathbf{x} \ar[rr] & \ar[d]\ar[r] &*+<5mm>[F-,]{1-A(z)}  \ar[r]^<(0.3){\boldsymbol{\epsilon}} &*+<5mm>[F-,]{\txt{PT}} \ar[r]  &*+<5mm>[F-,]{\frac{1}{1-\tilde{A}(z)}} \ar[r] & \mathbf{y} \\  % end line 1
 	&*+<5mm>[F-,]{\txt{LPC}} \ar[rr]^<(0.25){A(z)} & \ar[u]&*+<5mm>[F-,]{\txt{FT}}\ar `[ru]^<(0.5){\tilde{A}(z)} [ur]&  &}
   \end{tabular}
   \caption{Voice transformation system.}
@@ -31,22 +32,22 @@ The challenge in this procedure is to find global context-independent transforma
 
 \section{Signal Representation} % (fold)
 \label{the:signal_representation}
-Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need $\approx 40 000$ values. Linear predictive coding, Section~\ref{sub:lpc}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:VC}.
+Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need $\approx 40 000$ values. Linear predictive coding, Section~\ref{sub:linear_predictive_coding}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:VC}.
 
 LPC has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}.
 \TODO{include LSF or not?}.
 
 \subsection{Linear Predictive Coding} % (fold)
-\label{sub:lpc}
+\label{sub:linear_predictive_coding}
 Linear predictive coding, LPC, was first applied to speech signals by Bishnu Atal \etal in 1968 \cite{atal68}. LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
 \begin{equation}
-	\tilde{x}[n] = \sum_{k=1}^{p}a_k x[n-k]
+	\tilde{x}(n) = \sum_{k=1}^{p}a_k x(n-k)
 \end{equation}
 The prediction error by this representation is 
 \begin{equation}
 	\begin{split}
-		e[n]= & x[n]-\tilde{x}[n]\\
-		= & x[n]-\sum_{k=1}^{p}a_k x[n-k]
+		e(n)= & x(n)-\tilde{x}(n) \\
+		= & x(n)-\sum_{k=1}^{p}a_k x(n-k)
 	\end{split}
 \end{equation}
 
@@ -54,27 +55,67 @@ The prediction coefficients $a_k$ can be estimated by the minimum mean square er
 \begin{equation}
 	\label{eq:prediction_error}
 	\begin{split}
-		E = & \sum_{n}e^2[n]\\
-		= & \sum_{n}\left( x[n]-\sum_{k=1}^{p}a_k x[n-k] \right)^2
+		E = & \sum_{n} e^2(n)\\
+		= & \sum_{n}\pbrackets{x(n)-\sum_{k=1}^{p}a_k x(n-k)}^2
 	\end{split}
 \end{equation}
-The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. This yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved \cite{digsig}. The resulting $a_k$ coefficients are the linear prediction coefficients which represent the signal.
-
-Autocorrelation method is more robust to window location than the covariance method.\TODO{explain autocor-method}
+The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. By setting $\partial E/\partial \alpha_i = 0$ we obtain
+\begin{equation}
+	\sum_{n}x(n-i)x(n) = \sum_{k}\alpha \sum_{n}x(n-i)x(n-k), \qquad  1\leq i\leq p 
+	\label{eq:lpc_part1}
+\end{equation}	
+By introducing autocorrelation defined as
+\begin{equation}
+	R(k) = \sum_{n} x(n) x(n+k)
+\end{equation}
+Equation \eqref{eq:lpc_part1} becomes
+\begin{equation}
+	R(i) = \sum_{k=1}^{p} \alpha_k R(\abs{i-k}), \qquad  1\leq i\leq p
+	\label{eq:lpc_part2}
+\end{equation}
+Which yields a set of $p$ linear equations with $p$ unknown parameters, which easily can be solved by \eg the Levinson-Durbin algorithm \cite{digsig,cybenko80}.
+\begin{equation}
+	\begin{bmatrix}
+		R(0) & R(1) & \dots & R(p-1) \\
+		R(1) & R(0) & \dots & R(p-2) \\
+		\vdots & \vdots & \ddots & \vdots \\
+		R(p-1) & R(p-2) & \dots & R(0) \\
+	\end{bmatrix} 
+	\begin{bmatrix}
+		\alpha_1 \\
+		\alpha_2 \\
+		\vdots \\
+		\alpha_p \\
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		R_1 \\
+		R_2 \\
+		\vdots \\
+		R_p \\
+	\end{bmatrix}
+	\label{eq:yule_walker}
+\end{equation}
 % subsection Linear Predictive Coding (end)
 
 \subsection{Cepstrum} % (fold)
 \label{sub:cepstrum}
 The cepstrum was first introduced by Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstrum coefficients have the property of low correlation between different frames of coefficients.
 
-The complex cepstrum $c$ parameters can be converted from LPC coefficients $\alpha$ by the following recursion:
+The complex cepstrum,CC, is defined as the inverse Fourier transform of the log Fourier transform
+\begin{equation}
+	c(n) = \frac{1}{2\pi}\int_{-\pi}^{\pi} \ln X(e^{j\omega}) e^{j\omega n}d\omega
+	\label{eq:complex_cepstrum}
+\end{equation}
+However, the complex cepstrum $c(n)$ parameters can be converted from LPC coefficients $\alpha_n$ by the following recursion:
 \begin{equation}
 	c(n) = \begin{cases}
 		\alpha_n+{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & 0<n\leq p\\
 		{\displaystyle\sum_{k=n-p}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & n > p\\
 	\end{cases}
+	\label{eq:ar2cc}
 \end{equation}
-where $p$ is the number of LPC coefficients. The cepstrum representation is define with infinity number of coefficients, anything less will be an approximation. The usual choice of accuracy is in order of 20 coefficients.
+where $p$ is the number of LPC coefficients. The cepstrum representation is defined with infinity number of coefficients, anything less will be an approximation. The usual choice of accuracy is in the vicinity of 20 coefficients.
 
 The cepstrum parameters can be converted back from LPC by rearranging the equation,
 \begin{equation}
@@ -82,27 +123,22 @@ The cepstrum parameters can be converted back from LPC by rearranging the equati
 		\alpha_n, &\quad 0< n \leq p\\
 		0, &\quad n > p
 	\end{cases}
+	\label{eq:cc2ar}
 \end{equation}
-However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable and the recursion will not yield 0 for $n>p$.  
+However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, minimum-phase, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable and the recursion will not yield 0 for $n>p$.  
 
-
-% The Mel-frequency cepstrum, MFC\abbrev{MFC}{Mel-frequency cepstrum}, is a real cepstrum with a nonlinear frequency scale which approximates the behaviour of the human auditory system. The process of computing the MFC coefficents are depicted in Figure~\ref{fig:mfcc}.
-% 
-% The Mel-scale is defined as \cite{taletek}
-% \begin{equation}
-% 	B(f) = 1125\ln(1+f/700).
-% \end{equation}
-% 
+Another approach to map CC to LPC is to use equation \eqref{eq:complex_cepstrum}. By taking the Fourier transform of the complex cepstrum and the inverse logarithm, we get the Fourier transform of the signal. The magnitude of the Fourier transform yields the power spectrum of the signal. From the power spectrum we can get the autocorrelation of the signal by applying the inverse Fourier transform.
 \begin{figure}[htbp]
   \centering
   \begin{tabular}[h]{c}
 	\xymatrix{ 
-  		x[n] \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2}\ar[r] &*+<5mm>[F]{\text{MEL}} \ar[r] &*+<5mm>[F]{\log(\cdot)} \ar[r] &*+<5mm>[F]{\text{DCT}} \ar[r] & h[n]}    
+  		c(n) \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\exp(\cdot)}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2} \ar[r] &*+<5mm>[F]{\text{IDFT}} \ar[r] & R_{xx}(n)}    
   \end{tabular}
-  \caption{Computation of Mel-frequency cepstrum coefficients}
-  \label{fig:mfcc}
+  \caption{Complex cepstrum to autocorrelation}
+  \label{fig:cc2ar}
 \end{figure}
-% subsection Cepstrum (end)
+From the autocorrelation representation we have the same situation as in \eqref{eq:yule_walker}, which means that we can get the LPC parameters by the Levinson-Durbin algorithm \cite{cybenko80}. The number of DFT coefficients can be chosen arbitrary to get the desired 
+
 
 \subsection{Reflection Coefficients} % (fold)
 \label{sub:reflection_coefficients}
@@ -110,6 +146,7 @@ Reflection coefficients is another equivalent representation of LPC which is eas
 
 The reflection coefficients can be obtained from the linear prediction coefficients by the following recursion
 \begin{equation}
+	\label{eq:ar2rf}
 	\begin{split}
 		k_i = & a_i^i, \quad i=p,\dotsc,1 \\
 		a_j^{i-1} = & \frac{a_j^i+a_j^î a_{i-j}^i}{1-k_i^2}, \quad 1\leq j<i
@@ -119,6 +156,7 @@ where $a_i^p=a_i$.
 
 The coefficients can be converted back to LP by \cite{taletek}
 \begin{equation}
+	\label{eq:rf2ar}
 	\begin{split}
 		a_i^i = & k_i, \quad i=1,\dotsc,p \\
 		a_j^i = & a_j^{i-1}-k_i a_{i-j}^{i-1}, \quad 1\leq j<i
@@ -126,6 +164,37 @@ The coefficients can be converted back to LP by \cite{taletek}
 \end{equation}
 where $a_i=a_i^p$.
 % subsection Reflection Coefficients (end)
+
+\subsection{Pitch Detection} % (fold)
+\label{sub:pitch_detection}
+\begin{itemize}
+	\item why exclude voiced segments
+\end{itemize}
+There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+
+The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled to a sampling frequency of 2 kHz. Then the signal is passed through an inverse fourth-order LPC filter, which is sufficient for such a low sampling frequency, to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the accuracy we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise which has no correlation.
+\begin{figure}[htbp]
+  \centering
+  \begin{tabular}[h]{c}
+	\xymatrix{ 
+  		x(n) \ar[r] &*+<5mm>[F]{\textifsym{H|L}}\ar[r] &*+<5mm>[F]{\downarrow}\ar[r] &*+<5mm>[F]{1-A(z)} \ar[r] &*+<5mm>[F]{R_{xx}(\cdot)} \ar[r] &*+<5mm>[F]{\txt{$F_0$ detection}} }    
+  \end{tabular}
+  \caption{Signal manipulation for voiced/unvoiced and $F_0$ detection.}
+  \label{fig:mfcc}
+\end{figure}
+
+% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
+% \begin{equation}
+% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
+% 		\geq k, &\text{ unvoiced }\\
+% 		< k, &\text{ voiced }\\
+% 	\end{cases}
+% \end{equation}
+% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
+
+% subsection Pitch Prediction (end)
+
+
 
 
 % \subsection{Line Spectral Frequencies} % (fold)
@@ -163,7 +232,7 @@ where $a_i=a_i^p$.
 
 \section{Gaussian Mixture Model} % (fold)
 \label{sec:gaussian_mixture_model}
-The GMM is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech sound, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \TODO{cite}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
+The GMM is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech sound, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \cite{gray84}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
 
 The GMM assumes that the probability distribution of the observed parameters takes the following parametric form
 \newcommand{\nnn}{\mathcal N}
@@ -216,12 +285,12 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance} \cite{itakura90},
 \newcommand{\ita}{d_{I}}
 \begin{definition}
-	Given two vectors $\mathbf{x}$ and $\mathbf{y}$ of LP coefficients from a LPC analysis of $\mathbf{a}$ and $\mathbf{b}$, and the autocorrelation of $\mathbf{a}$, $\auto_a$. The Itakura distance between the two LP vectors is
+	Given two vectors $\mathbf{x}$ and $\mathbf{y}$ of LP coefficients from a LPC analysis of $\mathbf{a}$ and $\mathbf{b}$, and the autocorrelation of $\mathbf{a}$, $\auto_{aa}$. The Itakura distance between the two LP vectors is
 	\begin{equation}
 		\label{eq:itakura_distance}
 		\begin{split}
-			\ita(\mathbf{x},\mathbf{y}) = & \log\pbrackets{\frac{\mathbf{y}^T \ttt(\auto_a) \mathbf{y}}{\mathbf{x}^T \ttt(\auto_a) \mathbf{x}}} \\
-			 = & \log\pbrackets{\mathbf{y}^T \ttt(\auto_a) \mathbf{y}}, \quad \mathbf{x}_0 = 1
+			\ita(\mathbf{x},\mathbf{y}) = & \log\pbrackets{\frac{\mathbf{y}^T \ttt(\auto_{aa}) \mathbf{y}}{\mathbf{x}^T \ttt(\auto_{aa}) \mathbf{x}}} \\
+			 = & \log\pbrackets{\mathbf{y}^T \ttt(\auto_{aa}) \mathbf{y}}, \quad \mathbf{x}_0 = 1
 		\end{split}
 	\end{equation}
 \end{definition}
@@ -230,33 +299,35 @@ where $\ttt$ is the Toeplitz-matrix defined as
 	\label{eq:toeplitz}
 	\ttt(\auto) = 
 	\begin{bmatrix}
-		\auto_0 & \auto_1 & \dots & \auto_{n-1} 	\\
-		\auto_1 & \auto_0 & \dots & \auto_{n-2} \\
+		\auto_0 & \auto_1 & \dotsi & \auto_{n-1} 	\\
+		\auto_1 & \auto_0 & \dotsi & \auto_{n-2} \\
 		\vdots & \vdots & \ddots & \vdots \\
-		\auto_{n-1} & \auto_{n-2} & \dots & \auto_{0}
+		\auto_{n-1} & \auto_{n-2} & \dotsi & \auto_{0}
 	\end{bmatrix}
 \end{equation}	
 
-The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig78}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{a}$ with the source coefficients $\mathbf{x}$. For normalized coefficients, $\mathbf{x}_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of $\mathbf{a}$ with the coefficients $\mathbf{y}$. 
+The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig89}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{a}$ with the source coefficients $\mathbf{x}$. For normalized coefficients, $\mathbf{x}_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of $\mathbf{a}$ with the coefficients $\mathbf{y}$. 
 
-The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{X}=\sbrackets{\mathbf{x}_1,\mathbf{x}_2,\dotsc,\mathbf{x}_N}^T$ and $\mathbf{Y}=\sbrackets{\mathbf{y}_1,\mathbf{y}_2,\dotsc,\mathbf{y}_M}^T$. Equation \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
-\begin{equation}
-	\mathbf{D}(i,j) = \log\pbrackets{\mathbf{y}_j^T \ttt(\auto_{a_i}) \mathbf{y}_j}
-\end{equation}
+The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{X}=\sbrackets{\mathbf{x}_1,\mathbf{x}_2,\dotsc,\mathbf{x}_N}^T$ and $\mathbf{Y}=\sbrackets{\mathbf{y}_1,\mathbf{y}_2,\dotsc,\mathbf{y}_M}^T$. 
 
-The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek} \TODO{Check textbook for syntax}
-\newcommand{\dmin}{\textbf{D}_{min}}
+% Equation \eqref{eq:itakura_distance} is applied to every pair of such vectors to compute a full distance matrix
+% \begin{equation}
+% 	\mathbf{D}(i,j) = \log\pbrackets{\mathbf{y}_j^T \ttt(\auto_{a_i}) \mathbf{y}_j}
+% \end{equation}
+
+The minimum accumulated distance between the two signals can be found by choosing the shortest path from a finite set of possible paths. The problem can be solved as a recursion \cite{taletek}
+\newcommand{\dmin}{\mathbf{D}_{min}}
 \begin{equation}
 	\label{eq:dtw_recursion}
 	\begin{split}
-		\dmin(i,j) = \min \bigl[& \dmin(i-1,j-1)+\alpha \ita(\mathbf{y}_i,\mathbf{y}_j),\\
+		\dmin(i,j) = \min \bigl[& \dmin(i-1,j-1)+\alpha \ita(\mathbf{x}_i,\mathbf{y}_j),\\
 		& \dmin(i-1,j)+\beta \ita(\mathbf{x}_i,\mathbf{y}_j),\\
 		& \dmin(i,j-1)+\beta \ita(\mathbf{x}_i,\mathbf{y}_j),\\
 		% & \dmin(i-2,j-1)+\gamma \ita(\mathbf{a}_i,\mathbf{b}_j),\\
 		& \dmin(i-1,j-2)+\gamma \ita(\mathbf{x}_i,\mathbf{y}_j)\bigr]		
 	\end{split}
 \end{equation}
-where $\mathbf{a}_i$ and $\mathbf{b}_j$ denotes the LP coefficients of segment $i$ and $j$, respectively, from the two signals. The problem is broken down into simpler subproblems, hence dynamic programming. 
+where $\mathbf{x}_i$ and $\mathbf{y}_j$ denotes the LP coefficients of segment $i$ and $j$, respectively, from the two signals. The problem is broken down into simpler subproblems, hence dynamic programming. 
 
 The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}. 
 \begin{figure}[htbp]
@@ -323,7 +394,7 @@ Stylianou \etal \cite{stylianou95} suggested using this formula for a multicompo
 \begin{definition}
 	Given a Gaussian mixture model trained with a joint vector of time aligned feature vectors $\mathbf{z} = \sbrackets{\mathbf{x},\mathbf{y}}$ and a new feature vector $\mathbf{x}$ not contained in the training set of the GMM. The most likely correspond feature vector $\mathbf{y}$ can be obtained by
 	\begin{equation}
-		\label{eq:conversion_function}
+		\label{eq:transformation_function}
 		\begin{split}
 			\fff(\mathbf{x}) =& E \sbrackets{\mathbf{y}\vert \mathbf{x}}\\
 			=& \sum_{i=1}^{m}P(C_i \vert \mathbf{x})\sbrackets{ \boldsymbol{\mu}_i^y + \mathbf{\Sigma}_i^{yx} \pbrackets{\mathbf{\Sigma}_i^{xx}}^{-1} (\mathbf{x}-\boldsymbol{\mu}_i^x)}
@@ -335,7 +406,7 @@ where the likelihoods are weighted with the conditional probabilities of $\mathb
 
 \subsection{Diagonal Covariance Matrix} % (fold)
 \label{sub:diagonal_covariance_matrix}
-To decrease the computational complexity, the covariance matrix in the GMM can be constrained to be diagonal, if it is a good assumption with the signal representation in question. Cepstrum is such a representation. However, by constraining the covariance matrix to be diagonal we have to estimate the cross-covariance $\mathbf{\Sigma}^{yx}$.
+To decrease the computational complexity, the covariance matrix in the GMM can be constrained to be diagonal, if it is a good assumption with the signal representation in question. Cepstrum is such a representation. However, by constraining the covariance matrix to be diagonal we have to estimate the cross-covariance $\mathbf{\sigma}^{yx}$.
 
 \begin{figure}[htbp]
 	\centering
@@ -349,13 +420,14 @@ To decrease the computational complexity, the covariance matrix in the GMM can b
 	\label{fig:VC_training_diag}
 \end{figure}
 
-If we train the GMM with $\mathbf{Z}=\mathbf{X}$, the mean $\boldsymbol{\mu}^x$ and covariance of the source vector $\boldsymbol{\Sigma}^{xx}$ can be derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\Sigma}^{yx}$ are unknown and need to be estimated. This can be achieved in a training phase by minimising the total squared conversion error
-\begin{equation}
-	\label{eq:conversion_error}
-	\epsilon = \sum_{t} \norm{\mathbf{y}_t - \mathcal{F}(\mathbf{x}_t)}^2
-\end{equation}
+If we train the GMM with $\mathbf{Z}=\mathbf{X}$, the mean $\boldsymbol{\mu}^x$ and variance of the source vector $\boldsymbol{\sigma}^{xx}$ can be derived from the GMM, while the mean of the target vectors $\boldsymbol{\mu}^y$ and cross-covariance matrix $\mathbf{\sigma}^{yx}$ are unknown and need to be estimated. 
 
-Equation \eqref{eq:conversion_function} can be reformulated to a single matrix equation
+Equation \eqref{eq:transformation_function} with diagonal covariance matrices will become
+\begin{equation}
+	\label{eq:diagonal_transformation}
+	\mathcal{F}(x_t^{(k)}) = \sum_{i=1}^{m} P(C_i\vert \mathbf{x}_t) [\mu_i^{y^{(k)}}+\sigma_i^{yx^{(k)}}  (x_t^{(k)}-\mu_i^{x^{(k)}})/\sigma_i^{xx^{(k)}}]
+\end{equation}
+where $k=1,\dots,p$ and denotes one cepstrum coefficient. \eqref{eq:diagonal_transformation} can be written as a single matrix equation,
 \begin{equation}
 	\label{eq:least_square_problem}
 	\begin{split}
@@ -380,124 +452,88 @@ where $\mathbf{Y}$ is the training set of the target spectral vectors with dimen
 		P(C_1\vert \mathbf{x}_n) & \dots & P(C_m\vert \mathbf{x}_n) \\
 	\end{bmatrix}
 \end{equation}
-$\mathbf{D}$ is a $n \times pm$ matrix defined as
+$\mathbf{D}$ is a $\pbrackets{n \times m}\times p$ matrix defined as
 \begin{equation}
-	\label{eq:D_matrix}
-	\mathbf{D} = \begin{bmatrix}
-		P(C_1\vert \mathbf{x}_1)(\mathbf{x}_1 - \boldsymbol{\mu}_1^x)^T\mathbf{\Sigma}_1^{xx^{-1}} & \dots & P(C_m\vert \mathbf{x}_1)(\mathbf{x}_1 - \boldsymbol{\mu}_m^x)^T\mathbf{\Sigma}_m^{xx^{-1}} \\
-		P(C_1\vert \mathbf{x}_2)(\mathbf{x}_2 - \boldsymbol{\mu}_1^x)^T\mathbf{\Sigma}_1^{xx^{-1}} & \dots & P(C_m\vert \mathbf{x}_2)(\mathbf{x}_2 - \boldsymbol{\mu}_m^x)^T\mathbf{\Sigma}_m^{xx^{-1}} \\
+	\label{eq:D_matrix_new}
+	\mathbf{D}^{(k)} = \begin{bmatrix}
+		P(C_1\vert \mathbf{x}_1) (x_1^{(k)} - \mu_1^{x^{(k)}})/\sigma_1^{xx^{(k)}} & \dots & P(C_m\vert \mathbf{x}_1) (x_1^{(k)} - \mu_m^{x^{(k)}})/\sigma_m^{xx^{(k)}} \\
+		P(C_1\vert \mathbf{x}_2) (x_2^{(k)} - \mu_1^{x^{(k)}})/\sigma_1^{xx^{(k)}} & \dots & P(C_m\vert \mathbf{x}_2) (x_2^{(k)} - \mu_m^{x^{(k)}})/\sigma_m^{xx^{(k)}} \\
 		\vdots & & \vdots \\
-		P(C_1\vert \mathbf{x}_n)(\mathbf{x}_n - \boldsymbol{\mu}_1^x)^T\mathbf{\Sigma}_1^{xx^{-1}} & \dots & P(C_m\vert \mathbf{x}_n)(\mathbf{x}_n - \boldsymbol{\mu}_m^x)^T\mathbf{\Sigma}_m^{xx^{-1}} \\
+		P(C_1\vert \mathbf{x}_n) (x_n^{(k)} - \mu_1^{x^{(k)}})/\sigma_1^{xx^{(k)}} & \dots & P(C_m\vert \mathbf{x}_n) (x_n^{(k)} - \mu_m^{x^{(k)}})/\sigma_m^{xx^{(k)}} \\
 	\end{bmatrix}
 \end{equation}
-
-The two unknown matrices $\boldsymbol{\mu}^y$ and $\mathbf{\Sigma}^{yx}$ will have dimensions $m\times p$ and $m \times (p\times p)$ 
+The two unknown matrices $\boldsymbol{\mu}^y$ and $\mathbf{\Sigma}^{yx}$ will have dimensions $m\times p$ and $m \times \pbrackets{p\times p}$ 
 \begin{equation}
 	\label{eq:v_matrix}
 	\boldsymbol{\mu}^y = 
 	\begin{bmatrix}
-		\boldsymbol{\mu}^y_1 \vdots \boldsymbol{\mu}^y_2 \vdots \dots \vdots \boldsymbol{\mu}^y_m
+		\boldsymbol{\mu}^y_1, \boldsymbol{\mu}^y_2, \dotsc, \boldsymbol{\mu}^y_m
 	\end{bmatrix}^T
 \end{equation}
 \begin{equation}
 	\label{gamma_matrix}
 	\mathbf{\Sigma}^{yx} = 
 	\begin{bmatrix}
-		\mathbf{\Sigma}_1^{yx} \vdots \mathbf{\Sigma}_2^{yx} \vdots \dots \vdots \mathbf{\Sigma}_m^{yx}
+		\mathbf{\Sigma}_1^{yx}, \mathbf{\Sigma}_2^{yx}, \dotsc, \mathbf{\Sigma}_m^{yx}
 	\end{bmatrix}^T
 \end{equation}
 
-Equation \eqref{eq:least_square_problem} is a least-square problem which can be solved by the normal equations \cite{lawson74}
+We want to find the set $\sbrackets{\boldsymbol{\mu}^y, \mathbf{\sigma}^{yx}}^T$ which minimises  the total squared conversion error
+\begin{equation}
+	\label{eq:conversion_error}
+	\epsilon = \sum_{t} \norm{\mathbf{y}_t - \mathcal{F}(\mathbf{x}_t)}^2
+\end{equation}
+This least-square problem can be solved by the normal equations \cite{strang06}
 \begin{equation}
 	\label{eq:param_computed}
 	\begin{split}
 		\left( 
 		\begin{bmatrix}
 			\mathbf{P}^T \\
-			\dots \\
-			\mathbf{D}^T
+			\dotsi \\
+			\mathbf{D}^{(k)^T}
 		\end{bmatrix}
 		\begin{bmatrix}
-			\mathbf{P} & \vdots & \mathbf{D}
+			\mathbf{P} & \vdots & \mathbf{D}^{(k)}
 		\end{bmatrix}
 		 \right)
 		\begin{bmatrix}
 			\boldsymbol{\mu}^y \\
-			\dots \\
+			\dotsi \\
 			\mathbf{\Sigma}^{yx}
 		\end{bmatrix}
 		= &
 		\begin{bmatrix}
 			\mathbf{P}^T \\
-			\dots \\
-			\mathbf{D}^T
+			\dotsi \\
+			\mathbf{D}^{(k)^T}
 		\end{bmatrix}
 		\mathbf{Y} \\ % end line 1
 		\begin{bmatrix}
 			\boldsymbol{\mu}^y \\
-			\dots \\
+			\dotsi \\
 			\mathbf{\Sigma}^{yx}
 		\end{bmatrix}
 		= &
 		\left( 
 		\begin{bmatrix}
 			\mathbf{P}^T \\
-			\dots \\
-			\mathbf{D}^T
+			\dotsi \\
+			\mathbf{D}^{(k)^T}
 		\end{bmatrix}
 		\begin{bmatrix}
-			\mathbf{P} & \vdots & \mathbf{D}
+			\mathbf{P} & \vdots & \mathbf{D}^{(k)}
 		\end{bmatrix}
 		 \right)^{-1}
 		\begin{bmatrix}
 			\mathbf{P}^T \\
-			\dots \\
-			\mathbf{D}^T
+			\dotsi \\
+			\mathbf{D}^{(k)^T}
 		\end{bmatrix}
 		\mathbf{Y} \\ % end line 2
 	\end{split}
 \end{equation}
 % subsection Diagonal Covariance Matrix (end)
-
-\subsection{Filter Transformation} % (fold)
-\label{sub:filter_transformation}
-\TODO{input: gmm $[X_{cc},Y_{cc}]$,V,Gamma,sigma diag,wavfile}
-% subsection Filter Transformation (end)
-
-\subsection{Pitch Transformation} % (fold)
-\label{sub:pitch_transformation}
-
-\TODO{input: gmm $[Y_{cc},f_0]$, $\hat{Y}_{cc}$, $\bar{f}_0$, voiced index. insert $\bar{f}_0$ for unvoiced frames}
-
-
-The transformation function \eqref{eq:conversion_function} can be utilised in the pitch transformation if we train the GMM with a joint vector
-\begin{equation}
-	\mathbf{z} = \begin{bmatrix}
-		{\mathbf{y}^T,f_0}
-	\end{bmatrix}^T 
-\end{equation}
-where $\mathbf{x} = \begin{bmatrix}x_1,x_2,\dotsc,x_N \end{bmatrix}$ is a sequence of pitch values and $\mathbf{y} = \begin{bmatrix}y_1,y_2,\dotsc,y_N \end{bmatrix}$ is the corresponding set of spectrum coefficients, \eg CC \cite{najjary03new}. Given a vector of transformed spectrum coefficients $\mathbf{y}$, the corresponding pitch values can be estimated with the transformation function 
-\begin{equation}
-	\label{eq:pitch_transformation}
-	\begin{split}
-		\hat{\mathbf{f_0}} =& \fff(\mathbf{y})\\
-		=& \sum_{i=1}^{m}P(C_i \vert \mathbf{y}) \sbrackets{\boldsymbol{\mu}_i^x + \mathbf{\Sigma}_i^{xy} \pbrackets{\mathbf{\Sigma}_i^{yy}}^{-1} (\mathbf{y}-\boldsymbol{\mu}_i^y)}
-	\end{split}
-\end{equation}
-
-Pitch normalization due to importans
-\begin{equation}
-	f_{log} = \log \pbrackets{f_0/\bar{f_0}}
-\end{equation}
-
-
-
-
-
-
-
-
-% subsection Pitch Transformation (end)
 
 % section Transformation Function (end)
 
@@ -572,24 +608,7 @@ where $\alpha < 1$ decides how much information from the previous samples to inc
 By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpoints can be detected by choosing a utterance boundary of \eg $ITU=0.02$ and a lower silence boundrary, \eg $ITL=0.002$. The algorithm will seek for the first sample which exceeds $ITU$ and backtrace from this sample to the first sample with lower energy than $ITL$.
 % subsection Endpoint detection (end)
 
-\subsection{Pitch Prediction} % (fold)
-\label{sub:detection_of_voicing}
-\begin{itemize}
-	\item why exclude voiced segments
-\end{itemize}
-There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
 
-The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled. Then the signal is passed through an inverse fourth-order LPC filter to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the performance we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise.
-
-% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
-% \begin{equation}
-% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
-% 		\geq k, &\text{ unvoiced }\\
-% 		< k, &\text{ voiced }\\
-% 	\end{cases}
-% \end{equation}
-% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
-% subsection Detection of voicing (end)
 
 \subsection{Pre-emphesis} % (fold)
 \label{sub:pre_emphesis}
@@ -599,7 +618,7 @@ Better match in high-frequency. best for $f_s$ greater than 16 kHz??
 
 \section{Objective Result Metrics} % (fold)
 \label{sec:objective_metrics}
-Objective vs subjective
+The best quality metric of a voice transformation is the subjective impression from a listening test. However, it is dependant of the listeners and can be time consuming. Objective metrics could be useful too in the development phase. They are often easy to measure and gives a consequent result if used properly. 
 
 \subsection{Frequency Metrics} % (fold)
 \label{sub:frequency_metrics}
@@ -614,127 +633,139 @@ Itakura distance \eqref{eq:itakura_distance} is a distance metric to measure the
 	% \end{equation}	
 \end{definition}
 
-While NCD measures the improvement of the transform relative to untransformed source vectors, the $l_2$ metric in the frequency domain measures deviation of the transformed spectrum to the target spectrum.
+While NCD measures the improvement of the transform relative to untransformed source vectors, the $L_2$ metric in the frequency domain which measures deviation of the transformed spectrum to the target spectrum.
+
 \begin{definition}
-	Given the power spectrum $S(\omega)$ of signal
+	Given the power spectrum $S(\omega)$ of a signal
 \begin{equation}
 	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
 \end{equation}
-the $l_2$ metric is \cite{gray76} \TODO{reformuler}
+let $d_2(a,b)$ be 
 \begin{equation}
 	d_2(a,b) = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S_a(\omega)}{S_b(\omega)}\right\rvert^2 d\omega
 \end{equation}
-in decible 
+the $L_2$ metric is defined as \cite{gray76}
 \begin{equation}
-	l_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
+	L_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
 \end{equation}
+The $L_2$ is a true metric in the sense that they satisfy the triangle inequality in addition to being symmetric and positive definite \cite{kreyszig89}.
 \end{definition}
 
-The factor $4.343$ comes from the conversion from natural logarithm to decibel
-\begin{equation}
-	10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
-\end{equation}
+\begin{remark}
+	The $L_2$ metric is the rms log spectral measure in decibel. The factor $4.343$ comes from the conversion from natural logarithm to decibel
+	\begin{equation}
+		10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
+	\end{equation}	
+\end{remark}
+
 % subsection Frequency metrics (end)
 
 \subsection{Pitch Metrics} % (fold)
 \label{sub:pitch_metrics}
+The quality of a pitch transformation can be measured by controlling the fundamental frequency of each pitch period. The fundamental frequency is the frequency of pitch pulses, \ie 
 \begin{equation}
-	\Delta f_0 = \sum_{i} \abs{f^t_0 (i)-\hat{f}^t_0 (i)}
+	F_0(i) = \frac{1}{pm(i)-pm(i-1)}
 \end{equation}
 
-Normalized
+For a sentence of several pitch periods the overall error in fundamental frequency is
 \begin{equation}
-	\Delta f_0 = \frac{\sum_{i} \abs{f^t_0 (i)-\hat{f}^t_0 (i)}}{\sum_{i} \abs{f^t_0 (i)-f^s_0 (i)}}
+	\Delta F_0 = \sum_{i} \abs{F_0^t (i)-\hat{F_0} (i)}
+\end{equation}
+where $F_0^t$ is the target frequency and $\hat{F_0}$ is the transformed frequency.
+
+A more fair metric is the normalized error where the original fundamental frequency $F_0^s$ is put into consideration
+\begin{equation}
+	\Delta F_0 = \frac{\sum_{i} \abs{F_0^t (i)- \hat{F_0} (i)}}{\sum_{i} \abs{F_0^t (i)-F_0^s (i)}}
 \end{equation}
 
 % subsection Pitch metrics (end)
 % section Objective result metrics (end)
 
 
-\section{div} % (fold)
-\label{sec:div}
-modify freq spectra. Pull poles closer to origo.
-
-\begin{equation}
-	A(z) = 1+ \sum_{i} a_i z^{-i} = \prod_i (1-\rho_i z^{-i})
-\end{equation}
-\begin{equation}
-	A'(z) = 1+ \sum_{i} a_i \alpha^i z^{-i} = \prod_i (1-\rho_i \alpha^i z^{-i})
-\end{equation}
-
-
-
-
-Itakura distance implementation. Correlation matrix
-\begin{equation}
-	R(i,j) = \frac{\Sigma(i,j)}{\sqrt{\Sigma(i,i)\Sigma(j,j)}}
-\end{equation}
-The process of filter transformation consists of altering the filter coefficients of the source, to match the target coefficients. 
-
-
-
-LSF transformation
-\begin{equation}
-	\begin{split}
-		\fff=\begin{bmatrix}
-			P(x_1) \\
-			P(x_2) \\
-			\vdots \\
-			P(x_p) \\
-		\end{bmatrix}\Bigg(
-		\begin{bmatrix}
-			\mu_1^y \\
-			\mu_2^y \\
-			\vdots \\
-			\mu_p^y
-		\end{bmatrix} + 
-		\begin{bmatrix}
-			\Sigma^z(y_1,x_1) & \dots & \Sigma^z(y_1,x_p) \\
-			\Sigma^z(y_2,x_2) & \dots & \Sigma^z(y_2,x_p)\\
-			\vdots & \ddots & \\
-			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
-		\end{bmatrix} & \\
-		\begin{bmatrix}
-			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
-			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
-			\vdots & \ddots & \\
-			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
-		\end{bmatrix} &
-		\begin{bmatrix}
-			x_1 - \mu_1^x \\
-			x_2 - \mu_2^x \\
-			\vdots \\
-			x_p - \mu_p^x \\
-		\end{bmatrix}\Bigg)
-	\end{split}
-\end{equation}
-
-\begin{equation}
-	\begin{split}
-		\fff=\begin{bmatrix}
-			P(x_1) \\
-			P(x_2) \\
-			\vdots \\
-			P(x_p) \\
-		\end{bmatrix}\Bigg(
-			\mu_p^y + 
-		\begin{bmatrix}
-			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
-		\end{bmatrix} & \\
-		\begin{bmatrix}
-			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
-			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
-			\vdots & \ddots & \\
-			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
-		\end{bmatrix} &
-		\begin{bmatrix}
-			x_1 - \mu_1^x \\
-			x_2 - \mu_2^x \\
-			\vdots \\
-			x_p - \mu_p^x \\
-		\end{bmatrix}\Bigg)
-	\end{split}
-\end{equation}
-% section div (end)
+% \section{div} % (fold)
+% \label{sec:div}
+% modify freq spectra. Pull poles closer to origo.
+% 
+% \begin{equation}
+% 	A(z) = 1+ \sum_{i} a_i z^{-i} = \prod_i (1-\rho_i z^{-i})
+% \end{equation}
+% \begin{equation}
+% 	A'(z) = 1+ \sum_{i} a_i \alpha^i z^{-i} = \prod_i (1-\rho_i \alpha^i z^{-i})
+% \end{equation}
+% 
+% 
+% 
+% 
+% Itakura distance implementation. Correlation matrix
+% \begin{equation}
+% 	R(i,j) = \frac{\Sigma(i,j)}{\sqrt{\Sigma(i,i)\Sigma(j,j)}}
+% \end{equation}
+% The process of filter transformation consists of altering the filter coefficients of the source, to match the target coefficients. 
+% 
+% 
+% 
+% LSF transformation
+% \begin{equation}
+% 	\begin{split}
+% 		\fff=\begin{bmatrix}
+% 			P(x_1) \\
+% 			P(x_2) \\
+% 			\vdots \\
+% 			P(x_p) \\
+% 		\end{bmatrix}\Bigg(
+% 		\begin{bmatrix}
+% 			\mu_1^y \\
+% 			\mu_2^y \\
+% 			\vdots \\
+% 			\mu_p^y
+% 		\end{bmatrix} + 
+% 		\begin{bmatrix}
+% 			\Sigma^z(y_1,x_1) & \dots & \Sigma^z(y_1,x_p) \\
+% 			\Sigma^z(y_2,x_2) & \dots & \Sigma^z(y_2,x_p)\\
+% 			\vdots & \ddots & \\
+% 			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
+% 		\end{bmatrix} & \\
+% 		\begin{bmatrix}
+% 			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
+% 			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
+% 			\vdots & \ddots & \\
+% 			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
+% 		\end{bmatrix} &
+% 		\begin{bmatrix}
+% 			x_1 - \mu_1^x \\
+% 			x_2 - \mu_2^x \\
+% 			\vdots \\
+% 			x_p - \mu_p^x \\
+% 		\end{bmatrix}\Bigg)
+% 	\end{split}
+% \end{equation}
+% 
+% \begin{equation}
+% 	\begin{split}
+% 		\fff=\begin{bmatrix}
+% 			P(x_1) \\
+% 			P(x_2) \\
+% 			\vdots \\
+% 			P(x_p) \\
+% 		\end{bmatrix}\Bigg(
+% 			\mu_p^y + 
+% 		\begin{bmatrix}
+% 			\Sigma^z(y_p,x_p) & \dots & \Sigma^z(y_p,x_p)\\
+% 		\end{bmatrix} & \\
+% 		\begin{bmatrix}
+% 			\Sigma^z(x_1,x_1) & \dots & \Sigma^z(x_1,x_p) \\
+% 			\Sigma^z(x_2,x_2) & \dots & \Sigma^z(x_2,x_p)\\
+% 			\vdots & \ddots & \\
+% 			\Sigma^z(x_p,x_p) & \dots & \Sigma^z(x_p,x_p)\\
+% 		\end{bmatrix} &
+% 		\begin{bmatrix}
+% 			x_1 - \mu_1^x \\
+% 			x_2 - \mu_2^x \\
+% 			\vdots \\
+% 			x_p - \mu_p^x \\
+% 		\end{bmatrix}\Bigg)
+% 	\end{split}
+% \end{equation}
+% % section div (end)
 
 % chapter Theory (end)
