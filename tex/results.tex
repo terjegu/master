@@ -5,164 +5,161 @@ some introduction...
 
 \section{Pitch and voiced/unvoiced detection} % (fold)
 \label{sec:pitch_and_voiced_unvoiced_detection}
-\begin{figure}[htbp]
-	\begin{center}
-		\includegraphics[width=.8\textwidth]{fig/voiced_detection}
-		\caption{Voiced/unvoiced detection. Red colour indicates segments of a speech signal detected as unvoiced.}
-		\label{fig:voiced_detection}
-	\end{center}
-\end{figure}
+
 
 
 
 % section Pitch and voiced/unvoiced detection (end)
 
 
-\section{Pitch prediction} % (fold)
-\label{sec:pitch_prediction}
-Test conversion of $F_0$ with target $Y_{cc}$ as input to a 64 GMM.
+\section{Fundamental Frequency Transformation} % (fold)
+\label{sec:fundamental_frequency_ransformation}
+The standalone fundamental frequency transform was tested in a controlled environment with the target cepstrum as input from the training set. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33000 training vectors. The results from the different setups are presented in Table~\ref{tab:pitch_pred_target_input}. \TODO{rerun with CC from training set}.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction with 10 000 target cepstrum vectors as input}
+		\topcaption{Pitch prediction with 10 000 target cepstrum vectors as input.}
+		\label{tab:pitch_pred_target_input}	
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
 			\midrule
-			Without smoothing & 11.2 Hz & 10.3 Hz\\
-			Smoothing applied & 10.7 Hz & 10.0 Hz \\
+			Source $F_0$ & 0 Hz & 0 Hz \\
+			No smoothing & 11.2 Hz & 10.3 Hz\\
+			Moving average & 11.1 Hz & 10.1 Hz\\
+			Smoothing & 10.7 Hz & 10.0 Hz \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
-\label{tab:pitch_prediction_with_target_cempstrum_as_input}	
 \end{table}
+The results are not as impressive as in the research of T. En-Najjary \etal \cite{najjary03new}. However, there is an improvement compared to using the source speaker's fundamental frequency. 
 
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=.9\textwidth]{fig/pitch_trans}
+		\caption{Pitch transformation and different smoothing techniques with target $Y_{cc}$ as input.}
+		\label{fig:pitch_trans}
+	\end{center}
+\end{figure}
+Figure~\ref{fig:pitch_trans} depicts the transformed $F_0(t)$ for a test sentence. The transform without smoothing does not appear to be too bad from Table~\ref{tab:pitch_pred_target_input}, but Figure~\ref{fig:pitch_trans} reveals a fluctuating $F_0$ which is not very natural. The two smoothing techniques produce a $F_0$ contour which is similar to the correct contour, and in this particular case the moving average is the best choice. 
+
+In a real scenario the available input to the $F_0$ transform is the transformed $\mathbf{\hat{X}}_{cc}$ vectors. 
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction error with transformed target vector, voiced detection with autocorrelation}
+		\topcaption{Pitch prediction error with transformed target vector as input.}
+		\label{tab:pitch_pred_transformed_input}	
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
 			\midrule
 			Source pitch & 14.1 Hz & 16.1 Hz\\
-			GMM 32 & 11.4 Hz  & 12.4 Hz\\
-			GMM 64 & 9.4 Hz  & 14.0 Hz\\
-			GMM 128 & 9.4 Hz & 13.7 Hz\\
+			No smoothing 32 & 11.4 Hz  & 12.4 Hz\\
+			Moving average 64 & 9.4 Hz  & 14.0 Hz\\
+			Smoothing 128 & 9.4 Hz & 13.7 Hz\\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
-\label{tab:pitch_prediction_transformed}	
 \end{table}
+This introduces another source of error and the transformation precision is degraded as shown in Table~\ref{tab:pitch_pred_transformed_input}. The table shows an average result for 10 000 transformations.
 
+To relax the sources of error the fundamental frequency can be transformed together with the spectrum as a joint vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},F_0}$. Table~\ref{tab:f0_joint_transform} shows a comparison to the standalone transformation with transformed cepstrum vectors as input and the joint transformation.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction for all frames, voiced detection from file}
-		\begin{tabular}{lrr}
+		\topcaption{Joint fundamental frequency and spectrum transformation}
+		\label{tab:f0_joint_transform}
+		\begin{tabular}{lll}
 			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}}\\
 			\midrule
-			Source pitch & 15.0 Hz & 15.3 Hz\\
-			GMM 64 & 15.6 Hz  & 12.5 Hz \\
+			Standalone & text & text \\
+			Joint transform & text & text \\
 			\bottomrule			
 		\end{tabular}		
-	\end{center}
-\label{tab:pitch_prediction_unvoiced}	
+	\end{center}	
 \end{table}
-% section Pitch prediction (end)
+\TODO{comment}
+% section Fundamental Frequency Transformation (end)
 
-\section{Frequency Transformation} % (fold)
+\section{Frequency Spectrum Transformation} % (fold)
 \label{sec:frequency_transformation}
-
-\begin{table}[ht]
-	\begin{center}
-		\topcaption{Frequency Transform for unvoiced frames, autocorrelation for voiced/unvoiced detection}
-		\begin{tabular}{ll}
-			\toprule
-			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
-			\midrule
-			itakura distance before & 0.5473 \\
-			itakura distance after & 0.4555 \\
-			L2 norm before & 4.3748\\
-			L2 norm after & 4.0101 \\
-			NCD & 0.5466 \\
-			\bottomrule			
-		\end{tabular}		
-	\end{center}
-\label{tab:frequency_transform_for_unvoiced_frames}	
-\end{table}
-
+The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $F_0$ transformation. Four different setups were tested and the absolute results of the Itakura distance \eqref{eq:itakura_distance} and the $L_2$ metric \eqref{eq:l2_metric} are shown in Table~\ref{tab:absolute_results}.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, NCD only for converted frames}
-		\begin{tabular}{ll}
+		\topcaption{Absolute error in frequency transformation.}
+		\label{tab:absolute_results}
+		\begin{tabular}{lrrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura pre}} & \multicolumn{1}{c}{\emph{Itakura post}} & \multicolumn{1}{c}{\emph{$L_2$ pre}} & \multicolumn{1}{c}{\emph{$L_2$ post}}\\
 			\midrule
-			itakura distance before & 0.5859 \\
-			itakura distance after & 0.4881 \\
-			L2 norm before & 4.4977\\
-			L2 norm after & 4.0118 \\
-			NCD & 0.6238 \\
+			Normal & 0 & 0 & 0 & 0 \\
+			Pre-emphasis & 0.9677 & 0.5320 & 5.7336 & 4.0839 \\
+			$c_0$ excluded & 0 & 0 & 0 & 0 \\
+			Pre-emph and $c_0$ excluded & 0.9677 & 0.7227 & 5.7336 & 4.8453 \\
 			\bottomrule			
 		\end{tabular}		
-	\end{center}
-\label{tab:frequency_transform_for_unvoiced_frames2}	
+	\end{center}	
 \end{table}
 
-Correct voiced detection has higher subjective quality but worse objective quality.
-
+A different point of view is the relative improvement to the starting point. The normalized results are shown in Table~\ref{tab:normalized_results} including the normalized cepstral distance.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames}
-		\begin{tabular}{ll}
+		\topcaption{Normalized error in frequency transformation.}
+		\label{tab:normalized_results}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura}} & \multicolumn{1}{c}{\emph{$L_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
 			\midrule
-			itakura distance before & 0.6143 \\
-			itakura distance after & 0.5342 \\
-			L2 norm before & 4.7324\\
-			L2 norm after & 4.2756 \\
-			NCD & 0.6346 \\
+			Normal & 0 & 0 & 0 \\
+			Pre-emphasis & 0.5498 & 0.7123 & 0.5650 \\
+			$c_0$ excluded & 0 & 0 & 0 \\
+			Pre-emph and $c_0$ excluded & 0.7468 & 0.8451 & 0.62094 \\
 			\bottomrule			
 		\end{tabular}		
-	\end{center}
-\label{tab:frequency_transform_for_unvoiced_frames3}	
+	\end{center}	
 \end{table}
 
-
+Table~\ref{tab:spectrum_joint_transform} shows a comparison on the spectrum transformation of joint and standalone transformation.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames, cc2lp by power spectrum, lp=10, cc=13}
-		\begin{tabular}{ll}
+		\topcaption{Comparison of standalone and joint spectrum transformation}
+		\label{tab:spectrum_joint_transform}
+		\begin{tabular}{lll}
 			\toprule
-			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}}\\
 			\midrule
-			itakura distance before & 0.6143 \\
-			itakura distance after & 0.4160 \\
-			L2 norm before & 4.7324\\
-			L2 norm after & 3.6900 \\
-			NCD & 0.6346 \\
+			Standalone & text & text \\
+			Joint transform & text & text \\
 			\bottomrule			
 		\end{tabular}		
-	\end{center}
-\label{tab:frequency_transform_powerspec}	
+	\end{center}	
 \end{table}
+\TODO{comment}
 
-\begin{table}[htbp]
+\TODO{Claim of pre-emph improve high-freq transform by boosting high-freq energy. figures}
+
+
+The setup with the best performance was the ... The average density of the LPC coefficients from one sentence, 500 vectors, are depicted in Figure~\ref{fig:hist_lpc}. \TODO{comment}
+\begin{figure}[htbp]
 	\begin{center}
-		\topcaption{Frequency Transform, correct voiced detection, without pre-emphesis, only converted frames, cc2lp by power spectrum, lp=10, cc=15}
-		\begin{tabular}{ll}
-			\toprule
-			\multicolumn{1}{c}{\emph{Metric}} & \multicolumn{1}{c}{\emph{Value}} \\
-			\midrule
-			itakura distance before & 0.6143 \\
-			itakura distance after & 0.3976 \\
-			L2 norm before & 4.7324\\
-			L2 norm after & 3.6075 \\
-			NCD & 0.6196 \\
-			\bottomrule			
-		\end{tabular}		
+	\subfigure[Source]
+	{
+		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
+		\label{fig:hist_source}
+	}
+	\subfigure[Converted]
+	{
+		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
+		\label{fig:hist_converted}
+	}
+	\subfigure[Target]
+	{
+		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
+		\label{fig:hist_target}
+	}
+	\caption{Average density of LPC coefficients, excluding $\alpha_0$}
+	\label{fig:hist_lpc}
 	\end{center}
-\label{tab:frequency_transform_powerspec2}	
-\end{table}
+\end{figure}
+
+
 % section Frequency Transformation (end)
 % chapter Results (end)

@@ -34,7 +34,7 @@ The challenge in this procedure is to find global context-independent transforma
 \label{the:signal_representation}
 Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need $\approx 40 000$ values. Linear predictive coding, Section~\ref{sub:linear_predictive_coding}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:VC}.
 
-LPC has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}.
+LPC\abbrev{LPC}{linear prediction coding} has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}.
 \TODO{include LSF or not?}.
 
 \subsection{Linear Predictive Coding} % (fold)
@@ -100,9 +100,9 @@ Which yields a set of $p$ linear equations with $p$ unknown parameters, which ea
 
 \subsection{Cepstrum} % (fold)
 \label{sub:cepstrum}
-The cepstrum was first introduced by Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstrum coefficients have the property of low correlation between different frames of coefficients.
+The cepstrum was first introduced by Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstral coefficients (CC \abbrev{CC}{cepstral coefficients}) have the property of low correlation between different frames of coefficients.
 
-The complex cepstrum,CC, is defined as the inverse Fourier transform of the log Fourier transform
+The complex cepstrum is defined as the inverse Fourier transform of the log Fourier transform
 \begin{equation}
 	c(n) = \frac{1}{2\pi}\int_{-\pi}^{\pi} \ln X(e^{j\omega}) e^{j\omega n}d\omega
 	\label{eq:complex_cepstrum}
@@ -142,7 +142,7 @@ From the autocorrelation representation we have the same situation as in \eqref{
 
 \subsection{Reflection Coefficients} % (fold)
 \label{sub:reflection_coefficients}
-Reflection coefficients is another equivalent representation of LPC which is easily checked for stability. The reflection coefficients has a dynamic range of $\cbrackets{-1,1}$ if they are stable. 
+Reflection coefficients (RC\abbrev{RC}{reflection coefficients}) is another equivalent representation of LPC which is easily checked for stability. The reflection coefficients has a dynamic range of $\cbrackets{-1,1}$ if they are stable. 
 
 The reflection coefficients can be obtained from the linear prediction coefficients by the following recursion
 \begin{equation}
@@ -170,7 +170,7 @@ where $a_i=a_i^p$.
 \begin{itemize}
 	\item why exclude voiced segments
 \end{itemize}
-There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT\abbrev{SIFT}{simple inverse filter tracking}) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
 
 The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled to a sampling frequency of 2 kHz. Then the signal is passed through an inverse fourth-order LPC filter, which is sufficient for such a low sampling frequency, to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the accuracy we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise which has no correlation.
 \begin{figure}[htbp]
@@ -282,7 +282,7 @@ The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ ca
 \newcommand{\auto}{R}
 \newcommand{\Auto}{\boldsymbol R}
 
-Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance} \cite{itakura90},
+Feature comparison of two signals gives more sense if they are aligned in time. If the only difference in two signals is a time shift, they will not appear as equal if they are not aligned in time. Dynamic time warping (DTW\abbrev{DTW}{dynamic time warping}) is a dynamic programming concept to warp two sequence such that the difference in the signals are minimised. The signals are segmented into small parts which are compared and given a similarity-score. For LP parameters a good similarity-score is the \emph{Itakura distance} \cite{itakura75min},
 \newcommand{\ita}{d_{I}}
 \begin{definition}
 	Given two vectors $\mathbf{x}$ and $\mathbf{y}$ of LP coefficients from a LPC analysis of $\mathbf{a}$ and $\mathbf{b}$, and the autocorrelation of $\mathbf{a}$, $\auto_{aa}$. The Itakura distance between the two LP vectors is
@@ -290,7 +290,7 @@ Feature comparison of two signals gives more sense if they are aligned in time. 
 		\label{eq:itakura_distance}
 		\begin{split}
 			\ita(\mathbf{x},\mathbf{y}) = & \log\pbrackets{\frac{\mathbf{y}^T \ttt(\auto_{aa}) \mathbf{y}}{\mathbf{x}^T \ttt(\auto_{aa}) \mathbf{x}}} \\
-			 = & \log\pbrackets{\mathbf{y}^T \ttt(\auto_{aa}) \mathbf{y}}, \quad \mathbf{x}_0 = 1
+			 = & \log\pbrackets{\mathbf{y}^T \ttt(\auto_{aa}) \mathbf{y}}, \quad x_0 = 1
 		\end{split}
 	\end{equation}
 \end{definition}
@@ -306,7 +306,7 @@ where $\ttt$ is the Toeplitz-matrix defined as
 	\end{bmatrix}
 \end{equation}	
 
-The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig89}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{a}$ with the source coefficients $\mathbf{x}$. For normalized coefficients, $\mathbf{x}_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of $\mathbf{a}$ with the coefficients $\mathbf{y}$. 
+The Itakura distance is not a true metric, however, since it is not symmetric \cite{kreyszig89}. The denominator of \eqref{eq:itakura_distance} is the residual, or the power of the error, from the LP analysis of $\mathbf{a}$ with the source coefficients $\mathbf{x}$. For normalized coefficients, $x_0 = 1$, the power is 1. The numerator is the power of the residual from the LP analysis of $\mathbf{a}$ with the coefficients $\mathbf{y}$. 
 
 The two signals which are to be aligned in time are represented as sequences of feature vectors, $\mathbf{X}=\sbrackets{\mathbf{x}_1,\mathbf{x}_2,\dotsc,\mathbf{x}_N}^T$ and $\mathbf{Y}=\sbrackets{\mathbf{y}_1,\mathbf{y}_2,\dotsc,\mathbf{y}_M}^T$. 
 
@@ -333,36 +333,36 @@ The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}.
 \begin{figure}[htbp]
 	\begin{center}
 		\setlength{\unitlength}{0.8cm}
-		\begin{picture}(8,8)(0,0)
-		\put(0,0){\vector(1,0){8}}
-		\put(7,-0.5){$\mathbf{A}$}
-		\put(-0.5,7){$\mathbf{B}$}
-		\put(0,0){\vector(0,1){8}}
-		\put(7,7){\circle*{0.3}}
-		\put(4,4){\vector(1,1){2.8}}
-		\put(4,7){\vector(1,0){2.8}}
-		\put(7,4){\vector(0,1){2.8}}
-		% \put(1,4){\vector(2,1){5.8}}
-		\put(4,1){\vector(1,2){2.9}}
-		\put(5,4){$\gamma$}
-		% \put(3.7,5.7){$\gamma$}
-		\put(7.1,5){$\beta$}
-		\put(5,7.1){$\beta$}
-		\put(5,5.4){$\alpha$}
-		\put(2.6,7){\tiny{$(i-1,j)$}}
-		\put(6.6,3.7){\tiny{$(i,j-1)$}}
-		% \put(0.1,3.7){\tiny{$(i-2,j-1)$}}
-		\put(3.1,0.7){\tiny{$(i-1,j-2)$}}
-		\put(3,3.7){\tiny{$(i-1,j-1)$}}
+		\begin{picture}(8,6.5)(0,0)
+		\put(0.2,0.5){\vector(1,0){8}}
+		\put(7,0){$\mathbf{B}$}
+		\put(-0.4,5){$\mathbf{A}$}
+		\put(0.2,0.5){\vector(0,1){5.5}}
+		\put(7,5){\circle*{0.3}}
+		\put(4,2){\vector(1,1){2.8}}
+		\put(4,5){\vector(1,0){2.8}}
+		\put(7,2){\vector(0,1){2.8}}
+		\put(1,2){\vector(2,1){5.8}}
+		% \put(4,1){\vector(1,2){2.9}}
+		% \put(5,4){$\gamma$}
+		\put(3.7,3.7){$\gamma$}
+		\put(7.1,3){$\beta$}
+		\put(5,5.1){$\beta$}
+		\put(5,3.4){$\alpha$}
+		\put(2.6,5){\tiny{$(i,j-1)$}}
+		\put(6.6,1.7){\tiny{$(i-1,j)$}}
+		\put(0.3,1.7){\tiny{$(i-1,j-2)$}}
+		% \put(3.1,0.7){\tiny{$(i-2,j-1)$}}
+		\put(3,1.7){\tiny{$(i-1,j-1)$}}
 		\end{picture}
-		\caption{DTW shortest path calculations.}
+		\caption{Possible paths in DTW algorithm.}
 		\label{fig:dtw_shortest_path}
 	\end{center}
 \end{figure}
 The weights $\alpha,\beta$ and $\gamma$, called local constraints, are optional and could have a significant effect on the outcome. For instance, the $\beta$ weights can be assigned a larger value to avoid multiple skipping or repetition of frames. Global constraints can be applied in addition to the local constraints which limits the resulting path by borders to guarantee a maximum modification of the signals.
 
 \begin{remark}
-There is no option for the path $\dmin(i-2,j)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors can be used to represent the mapping. This is important because in source speaker is used as input in the transformation function. For the same reason, the global constraints can not allow open ends for the source vector since this will in practise mean stripping off the edges of the signal.
+There is no option for the path $\dmin(i-2,j-1)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors can be used to represent the mapping. This is important because in source speaker is used as input in the transformation function. For the same reason, the global constraints can not allow open ends for the source vector since this will in practise mean stripping off the edges of the signal.
 \end{remark}
 
 The indices in the resulting shortest path are used to duplicate and/or delete frames in the target signal to get a time-aligned version of the target matrix which is the best match to the LP matrix of the source speaker.
@@ -612,7 +612,12 @@ By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpo
 
 \subsection{Pre-emphesis} % (fold)
 \label{sub:pre_emphesis}
-Better match in high-frequency. best for $f_s$ greater than 16 kHz??
+Better match in high-frequency. According to \cite{turk06} pre-emphasis yields a significant improvement for sampling frequencies greater than 16 kHz for LSF feature vectors. Pre-emphasis relaxes the time-aligned criteria for codebook matching with the transformation input vector and should improve transformation of high frequencies. However, wether it provides an increase in the overall quality of the voice transformation is uncertain.
+
+\begin{equation}
+	H(z) = \frac{1}{1-\alpha z^{-1}}
+\end{equation}
+where $0<\alpha < 1$.
 % subsection Pre-emphesis (end)
 % section Robustness (end)
 
@@ -646,6 +651,7 @@ let $d_2(a,b)$ be
 \end{equation}
 the $L_2$ metric is defined as \cite{gray76}
 \begin{equation}
+	\label{eq:l2_metric}
 	L_2(a,b)  = 4.343 \sqrt{d_2(a,b)} \quad [db]
 \end{equation}
 The $L_2$ is a true metric in the sense that they satisfy the triangle inequality in addition to being symmetric and positive definite \cite{kreyszig89}.
@@ -662,20 +668,20 @@ The $L_2$ is a true metric in the sense that they satisfy the triangle inequalit
 
 \subsection{Pitch Metrics} % (fold)
 \label{sub:pitch_metrics}
-The quality of a pitch transformation can be measured by controlling the fundamental frequency of each pitch period. The fundamental frequency is the frequency of pitch pulses, \ie 
+The quality of a pitch transformation can be measured by controlling the fundamental frequency $F_0$ of each pitch period. The fundamental frequency is the frequency of pitch pulses, \ie 
 \begin{equation}
 	F_0(i) = \frac{1}{pm(i)-pm(i-1)}
 \end{equation}
 
-For a sentence of several pitch periods the overall error in fundamental frequency is
+For a sentence of several pitch periods the average error in fundamental frequency is
 \begin{equation}
-	\Delta F_0 = \sum_{i} \abs{F_0^t (i)-\hat{F_0} (i)}
+	\Delta F_0 = \frac{1}{N}\sum_{i=0}^{N-1} \abs{F_0^t(i) - \hat{F_0}(i)}
 \end{equation}
 where $F_0^t$ is the target frequency and $\hat{F_0}$ is the transformed frequency.
 
-A more fair metric is the normalized error where the original fundamental frequency $F_0^s$ is put into consideration
+A more fair metric is the normalised error where the original fundamental frequency $F_0^s$, the input to the $F_0$ transformation, is put into consideration
 \begin{equation}
-	\Delta F_0 = \frac{\sum_{i} \abs{F_0^t (i)- \hat{F_0} (i)}}{\sum_{i} \abs{F_0^t (i)-F_0^s (i)}}
+	\Delta_N F_0 = \frac{\sum_{i} \abs{F_0^t (i)- \hat{F_0} (i)}}{\sum_{i} \abs{F_0^t (i)-F_0^s (i)}}
 \end{equation}
 
 % subsection Pitch metrics (end)
