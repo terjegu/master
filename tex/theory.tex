@@ -167,6 +167,7 @@ where $a_i=a_i^p$.
 
 \subsection{Pitch Detection} % (fold)
 \label{sub:pitch_detection}
+Pitch is somewhat the perceptual ``tone'' of the voice and can not directly be measured from the signal. However, the pitch period can be simplified to label the smallest true period of the signal. The inverse of the smallest period of a small analysis interval yields the fundamental frequency $F_0(t)$. If there is no distinct period in the analysis window, it is detected as unvoiced.
 \begin{itemize}
 	\item why exclude voiced segments
 \end{itemize}
@@ -183,14 +184,7 @@ The fundamental frequency will be lower than 1000 Hz for a normal voice so we ar
   \label{fig:mfcc}
 \end{figure}
 
-% Unvoiced speech is generally modelled as white noise \cite{taletek}. Since white noise has an autocorrelation with $R_{xx}(k) = 0, k\neq 0$, autocorrelation can be used as a tool to detect unvoiced segments in a speech signal.
-% \begin{equation}
-% 	\frac{R_{xx}(1)}{R_{xx}(0)} \begin{cases}
-% 		\geq k, &\text{ unvoiced }\\
-% 		< k, &\text{ voiced }\\
-% 	\end{cases}
-% \end{equation}
-% If the relationship between the first autocorrelation coefficient and the zero-lag coefficient is greater than some value $k$ the segment is declared as unvoiced.
+
 
 % subsection Pitch Prediction (end)
 
@@ -613,8 +607,8 @@ By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpo
 \subsection{Pre-emphesis} % (fold)
 \label{sub:pre_emphesis}
 Better match in high-frequency. According to \cite{turk06} pre-emphasis yields a significant improvement for sampling frequencies greater than 16 kHz for LSF feature vectors. Pre-emphasis relaxes the time-aligned criteria for codebook matching with the transformation input vector and should improve transformation of high frequencies. However, wether it provides an increase in the overall quality of the voice transformation is uncertain.
-
 \begin{equation}
+	\label{eq:pre_emphasis}
 	H(z) = \frac{1}{1-\alpha z^{-1}}
 \end{equation}
 where $0<\alpha < 1$.
@@ -627,18 +621,25 @@ The best quality metric of a voice transformation is the subjective impression f
 
 \subsection{Frequency Metrics} % (fold)
 \label{sub:frequency_metrics}
-Itakura distance \eqref{eq:itakura_distance} is a distance metric to measure the difference between LPC vectors. Normalized cepstral distance (NCD\abbrev{NCD}{Normalized cepstral distance}) is another metric useful in measuring the quality of the frequency transformation. It is relative distance measure in the cepstrum domain, comparing the difference between the cepstral coefficients of the source and target speaker, to the transformed coefficients and the target coefficients.
+Itakura distance \eqref{eq:itakura_distance} is a distance metric to measure the difference between LPC vectors. Cepstral distance is another metric useful in measuring the quality of the frequency transformation from the cepstral domain. 
 \begin{definition}
-	The Normalized cepstral distance between a set of transformed vectors and their corresponding target vectors is
+	Let $\hat{c}$ be a vector of transformed cepstral coefficients and $c_t$ the vector of target coefficients. The cepstral distance between the two vectors is
 	\begin{equation}
-		e(\hat{c}^t,c^t) = \frac{{\sum}_{i=2}^{13}(\hat{c}_{i}^t-c_{i}^t)^2}{\sum_{j=2}^{13}(c_{j}^s-c_{j}^t)^2}
+		\label{eq:cepstral_distance}
+		e(\hat{c},c^t) = \sum_{i=2}^{n}(\hat{c}_{i}-c_{i}^t)^2
 	\end{equation}
+	The Normalised cepstral distance (NCD\abbrev{NCD}{normalised cepstral distance}) of the transformed vector with source vector $c_s$ is
+	\begin{equation}
+		\label{eq:ncd}
+		e(\hat{c},c^t,c^s) = \frac{{\sum}_{i=2}^{n}(\hat{c}_{i}-c_{i}^t)^2}{\sum_{j=2}^{n}(c_{j}^s-c_{j}^t)^2}
+	\end{equation}
+	Which measures the relative improvement of the transformation.
 	% \begin{equation}
 	% 	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
 	% \end{equation}	
 \end{definition}
 
-While NCD measures the improvement of the transform relative to untransformed source vectors, the $L_2$ metric in the frequency domain which measures deviation of the transformed spectrum to the target spectrum.
+While NCD measures the improvement of the transform relative to untransformed source vectors in the cepstral domain, the $L_2$ metric operates in the frequency domain and measures the deviation of the transformed spectrum to the target spectrum.
 
 \begin{definition}
 	Given the power spectrum $S(\omega)$ of a signal

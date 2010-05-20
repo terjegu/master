@@ -12,40 +12,46 @@
 
 % ---------- BEGIN DOCUMENT --------------
 \begin{document}
+% \pagenumbering{Roman}
 % \input{tex/titlepage.tex}
-\pagenumbering{Roman}
-% \input{tex/titlepage_sub.tex}
-\cleardoublepage
-% \input{tex/problem_desc.tex}
+% % ---------- CLEAR PAGE START --------------
+% \pagestyle{empty}
+% \vspace*{\fill}
+% \begin{center}
+% \emph{ }
+% \end{center}
+% \vspace{\fill}
 % \clearpage
-% \input{tex/preface.tex}
-% \input{tex/abstract.tex}
+% % ---------- CLEAR PAGE END --------------
 \pagenumbering{roman}
-% \cleardoublepage
+\input{tex/abstract.tex}
+\cleardoublepage
+\input{tex/preface.tex}
+\cleardoublepage
 \tableofcontents
 \listoffigures
 \addcontentsline{toc}{chapter}{List of Figures}
 \listoftables
 \addcontentsline{toc}{chapter}{List of Tables}
-% \Listofabbrev
+\Listofabbrev
 \cleardoublepage
 % ---------- INTRODUCTION ----------
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[RE]{{\nouppercase{\rightmark}}}
-\fancyhead[LO]{{\nouppercase{\leftmark}}}
+\fancyhead[LE]{{\nouppercase{\leftmark}}}
+\fancyhead[RO]{{\nouppercase{\rightmark}}}
 \cfoot{\thepage}
 \pagenumbering{arabic}
 \input{tex/introduction.tex}
-% \cleardoublepage
+\cleardoublepage
 \input{tex/theory.tex}
-% \cleardoublepage
+\cleardoublepage
 \input{tex/implementation.tex}
-% \cleardoublepage
+\cleardoublepage
 \input{tex/results.tex}
 % \cleardoublepage
 % \input{tex/discussion.tex}
-% \cleardoublepage
+\cleardoublepage
 \input{tex/conclusion.tex}
 % \cleardoublepage
 

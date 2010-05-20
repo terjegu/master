@@ -1,42 +1,62 @@
 \chapter{Results} % (fold)
 \label{cha:results}
 
-some introduction...
-
-\section{Pitch and voiced/unvoiced detection} % (fold)
-\label{sec:pitch_and_voiced_unvoiced_detection}
-
-
-
-
-% section Pitch and voiced/unvoiced detection (end)
+% some introduction...
+% 
+% \section{Pitch and voiced/unvoiced detection} % (fold)
+% \label{sec:pitch_and_voiced_unvoiced_detection}
+% 
+% 
+% 
+% 
+% % section Pitch and voiced/unvoiced detection (end)
 
 
 \section{Fundamental Frequency Transformation} % (fold)
 \label{sec:fundamental_frequency_ransformation}
-The standalone fundamental frequency transform was tested in a controlled environment with the target cepstrum as input from the training set. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33000 training vectors. The results from the different setups are presented in Table~\ref{tab:pitch_pred_target_input}. \TODO{rerun with CC from training set}.
+The standalone fundamental frequency transform was tested in a controlled environment with the target cepstrum as input from the training set. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33000 training vectors. The results from the different setups are presented in Table~\ref{tab:pitch_pred_target_input}.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction with 10 000 target cepstrum vectors as input.}
+		\topcaption{$F_0$ transformation with target cepstrum vectors as input for 10 sentences.}
 		\label{tab:pitch_pred_target_input}	
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
 			\midrule
-			Source $F_0$ & 0 Hz & 0 Hz \\
-			No smoothing & 11.2 Hz & 10.3 Hz\\
-			Moving average & 11.1 Hz & 10.1 Hz\\
-			Smoothing & 10.7 Hz & 10.0 Hz \\
+			Source $F_0$ & 24.82 Hz & 23.38 Hz \\
+			No smoothing & -0.75 Hz & 20.31 Hz\\
+			Moving average & -0.77 Hz & 19.71 Hz\\
+			Improved m-avg & -1.58 Hz & 19.19 Hz \\
+			Delta limit & -1.71 Hz & 19.93 Hz \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
 \end{table}
-The results are not as impressive as in the research of T. En-Najjary \etal \cite{najjary03new}. However, there is an improvement compared to using the source speaker's fundamental frequency. 
+
+% \begin{table}[htbp]
+% 	\begin{center}
+% 		\topcaption{$F_0$ transformation with target cepstrum vectors as input for 10 sentences.}
+% 		\label{tab:pitch_pred_target_input}	
+% 		\begin{tabular}{lrr}
+% 			\toprule
+% 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
+% 			\midrule
+% 			Source $F_0$ & 29.32 Hz & 17.40 Hz \\
+% 			No smoothing & 15.19 Hz & 13.50 Hz\\
+% 			Moving average & 14.77 Hz & 13.06 Hz\\
+% 			Improved m-avg & 14.69 Hz & 12.45 Hz \\
+% 			Delta limit & 14.69 Hz & 12.45 Hz \\
+% 			\bottomrule			
+% 		\end{tabular}		
+% 	\end{center}
+% \end{table}
+
+The results are close to the results of T. En-Najjary \etal \cite{najjary03new}. Moving average and no smoothing at all appears to be the best choice.
 
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=.9\textwidth]{fig/pitch_trans}
-		\caption{Pitch transformation and different smoothing techniques with target $Y_{cc}$ as input.}
+		\caption{Contour of $F_0$ transformation with different smoothing techniques and target $Y_{cc}$ as input.}
 		\label{fig:pitch_trans}
 	\end{center}
 \end{figure}
@@ -45,21 +65,39 @@ Figure~\ref{fig:pitch_trans} depicts the transformed $F_0(t)$ for a test sentenc
 In a real scenario the available input to the $F_0$ transform is the transformed $\mathbf{\hat{X}}_{cc}$ vectors. 
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Pitch prediction error with transformed target vector as input.}
+		\topcaption{$F_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
 		\label{tab:pitch_pred_transformed_input}	
 		\begin{tabular}{lrr}
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
 			\midrule
-			Source pitch & 14.1 Hz & 16.1 Hz\\
-			No smoothing 32 & 11.4 Hz  & 12.4 Hz\\
-			Moving average 64 & 9.4 Hz  & 14.0 Hz\\
-			Smoothing 128 & 9.4 Hz & 13.7 Hz\\
+			Source pitch & 24.82 Hz & 23.38 Hz\\
+			No smoothing & -0.05 Hz  & 26.29 Hz\\
+			Moving average & -0.08 Hz  & 24.57 Hz\\
+			Improved m-avg & 1.18 Hz & 23.59 Hz\\
+			Delta limit & 1.25 Hz & 24.56 Hz \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
 \end{table}
-This introduces another source of error and the transformation precision is degraded as shown in Table~\ref{tab:pitch_pred_transformed_input}. The table shows an average result for 10 000 transformations.
+% \begin{table}[htbp]
+% 	\begin{center}
+% 		\topcaption{$F_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
+% 		\label{tab:pitch_pred_transformed_input}	
+% 		\begin{tabular}{lrr}
+% 			\toprule
+% 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+% 			\midrule
+% 			Source pitch & 29.32 Hz & 17.40 Hz\\
+% 			No smoothing & 19.89 Hz  & 17.19 Hz\\
+% 			Moving average & 18.96 Hz  & 15.63 Hz\\
+% 			Improved m-avg & 18.52 Hz & 14.66 Hz\\
+% 			Delta limit & 0 Hz & 0 Hz \\
+% 			\bottomrule			
+% 		\end{tabular}		
+% 	\end{center}
+% \end{table}
+This introduces another source of error and the transformation precision is degraded as shown in Table~\ref{tab:pitch_pred_transformed_input}. The table shows an average result from 10 sentences.
 
 To relax the sources of error the fundamental frequency can be transformed together with the spectrum as a joint vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},F_0}$. Table~\ref{tab:f0_joint_transform} shows a comparison to the standalone transformation with transformed cepstrum vectors as input and the joint transformation.
 \begin{table}[htbp]
@@ -70,48 +108,68 @@ To relax the sources of error the fundamental frequency can be transformed toget
 			\toprule
 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}}\\
 			\midrule
-			Standalone & text & text \\
-			Joint transform & text & text \\
+			Standalone & -0.05 & 26.29 \\
+			Joint transform & -3.43 & 22.26 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
 \end{table}
 \TODO{comment}
+
+The transformation in hand is clearly not context dependent. If the context was known the $F_0$ contour could be scaled, with \eg a parabola for a typical statement, to enhance the performance. Without context information this is impossible since the prosody in a statement is clearly different than in a question. The source $F_0$ could be used in the transformation to introduce some context awareness.
 % section Fundamental Frequency Transformation (end)
 
 \section{Frequency Spectrum Transformation} % (fold)
 \label{sec:frequency_transformation}
-The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $F_0$ transformation. Four different setups were tested and the absolute results of the Itakura distance \eqref{eq:itakura_distance} and the $L_2$ metric \eqref{eq:l2_metric} are shown in Table~\ref{tab:absolute_results}.
+The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $F_0$ transformation. Four different setups were tested and the average results of the Itakura distance \eqref{eq:itakura_distance}, the $L_2$ metric \eqref{eq:l2_metric} and the cepstral distance \eqref{eq:cepstral_distance} of 10 sentences are shown in Table~\ref{tab:absolute_results}. The distance of the source and target feature vectors before transformation are; itakura = 0.6053, $L_2$ = 4.4985 and CD = 0.4483.
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{Absolute error in frequency transformation.}
 		\label{tab:absolute_results}
-		\begin{tabular}{lrrrr}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura pre}} & \multicolumn{1}{c}{\emph{Itakura post}} & \multicolumn{1}{c}{\emph{$L_2$ pre}} & \multicolumn{1}{c}{\emph{$L_2$ post}}\\
+			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura}} & \multicolumn{1}{c}{\emph{$L_2$}} & \multicolumn{1}{c}{\emph{CD}}\\
 			\midrule
-			Normal & 0 & 0 & 0 & 0 \\
-			Pre-emphasis & 0.9677 & 0.5320 & 5.7336 & 4.0839 \\
-			$c_0$ excluded & 0 & 0 & 0 & 0 \\
-			Pre-emph and $c_0$ excluded & 0.9677 & 0.7227 & 5.7336 & 4.8453 \\
+			Normal &  0.4565 & 3.6852 & 0.2939 \\
+			Pre-emphasis & 0.5162 & 3.9512 & 0.3203 \\
+			$c_0$ excluded & 0.5111 & 3.9790 & 0.3361 \\
+			Pre-emph, $c_0$ excluded & 0.6016 & 4.3725 & 0.3447 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
 \end{table}
 
-A different point of view is the relative improvement to the starting point. The normalized results are shown in Table~\ref{tab:normalized_results} including the normalized cepstral distance.
+% \begin{table}[htbp]
+% 	\begin{center}
+% 		\topcaption{Absolute error in frequency transformation.}
+% 		\label{tab:absolute_results}
+% 		\begin{tabular}{lrrrr}
+% 			\toprule
+% 			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura pre}} & \multicolumn{1}{c}{\emph{Itakura post}} & \multicolumn{1}{c}{\emph{$L_2$ pre}} & \multicolumn{1}{c}{\emph{$L_2$ post}}\\
+% 			\midrule
+% 			Normal & 0.6053 & 0.4652 & 4.4985 & 3.7524 \\
+% 			Pre-emphasis & 0.7925 & 0.5127 & 5.2366 & 3.9638 \\
+% 			$c_0$ excluded &  0.6053 & 0.5267 & 4.4985 & 4.1227 \\
+% 			Pre-emph and $c_0$ excluded & 0.7925 & 0.6038 & 5.2366 & 4.4277 \\
+% 			\bottomrule			
+% 		\end{tabular}		
+% 	\end{center}	
+% \end{table}
+
+
+A different point of view is the relative improvement to the starting point. The normalised results are shown in Table~\ref{tab:normalized_results} for the same 10 sentences. By implementing pre-emphasis the source and target spectra are also affected which does not justify the absolute results of the pre-emphasis transform. The relative distance measures is therefor a better metric in this regard.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Normalized error in frequency transformation.}
+		\topcaption{Normalised error in frequency transformation.}
 		\label{tab:normalized_results}
 		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura}} & \multicolumn{1}{c}{\emph{$L_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
+			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura$_N$}} & \multicolumn{1}{c}{\emph{N-L$_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
 			\midrule
-			Normal & 0 & 0 & 0 \\
-			Pre-emphasis & 0.5498 & 0.7123 & 0.5650 \\
-			$c_0$ excluded & 0 & 0 & 0 \\
-			Pre-emph and $c_0$ excluded & 0.7468 & 0.8451 & 0.62094 \\
+			Normal & 0.7542 & 0.8174 & 0.6553 \\
+			Pre-emphasis &  0.6514 & 0.7545 & 0.5780 \\
+			$c_0$ excluded & 0.8444 & 0.8826 & 0.7495 \\
+			Pre-emph and $c_0$ excluded & 0.7591 & 0.8350 & 0.6219 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
@@ -122,44 +180,59 @@ Table~\ref{tab:spectrum_joint_transform} shows a comparison on the spectrum tran
 	\begin{center}
 		\topcaption{Comparison of standalone and joint spectrum transformation}
 		\label{tab:spectrum_joint_transform}
-		\begin{tabular}{lll}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}}\\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Itakura}} & \multicolumn{1}{c}{\emph{$L_2$}} & \multicolumn{1}{c}{\emph{CD}}\\
 			\midrule
-			Standalone & text & text \\
-			Joint transform & text & text \\
+			Standalone & 0.4565 & 3.6852 & 0.2939 \\
+			Joint transform & 3.2840 & 10.157 & 3.0131 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
 \end{table}
-\TODO{comment}
+The joint transform did not have a dramatic effect on the $f_0$ transform, in fact it had a lower standard deviation than the standalone transform. But the joint transformation of the spectrum is even worse than no transformation at all. Of course the joint transformation could be used only for the pitch and spectrum could be transform in a separate transform, but since there was nothing to gain in the $f_0$ transform either there is not point in combining these two transformation in one.
 
-\TODO{Claim of pre-emph improve high-freq transform by boosting high-freq energy. figures}
-
-
-The setup with the best performance was the ... The average density of the LPC coefficients from one sentence, 500 vectors, are depicted in Figure~\ref{fig:hist_lpc}. \TODO{comment}
 \begin{figure}[htbp]
 	\begin{center}
-	\subfigure[Source]
+	\subfigure[Without pre-emphasis]
 	{
-		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
-		\label{fig:hist_source}
+		\includegraphics[width = .45\textwidth]{fig/freq_100}
+		\label{fig:freq_100}
 	}
-	\subfigure[Converted]
+	\subfigure[Pre-emphasis applied]
 	{
-		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
-		\label{fig:hist_converted}
+		\includegraphics[width = .45\textwidth]{fig/freq_100_pre}
+		\label{fig:freq_100_pre}
 	}
-	\subfigure[Target]
+	\subfigure[Without pre-emphasis]
 	{
-		\includegraphics[width = .45\textwidth]{fig/hist_lp_source}
-		\label{fig:hist_target}
+		\includegraphics[width = .45\textwidth]{fig/freq_125}
+		\label{fig:freq_125}
 	}
-	\caption{Average density of LPC coefficients, excluding $\alpha_0$}
-	\label{fig:hist_lpc}
+	\subfigure[Pre-emphasis applied]
+	{
+		\includegraphics[width = .45\textwidth]{fig/freq_125_pre}
+		\label{fig:freq_125_pre}
+	}
+	\caption{The effect of pre-emphasis on magnitude spectrum.}
+	\label{fig:the_effect_of_pre_emphasis_on_magnitude_spectrum_}
 	\end{center}
 \end{figure}
 
 
+The setup with the best performance was the ... The average density of the LPC coefficients, excluding the first which was 1 for all vectors, from 10 sentences, yielding 28 000 parameters, are depicted in Figure~\ref{fig:hist_lpc}.
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=.8\textwidth]{fig/lp_hist}
+		\caption{Comparison of LP parameters distributions.}
+		\label{fig:hist_lp}
+	\end{center}
+\end{figure}
+The source and target LP vectors as a pretty even distribution of parameters, while the converted vectors are a little off. Even though they have the same mean value, the converted parameters has a more flat distribution and are dense in different regions than the target distribution.
 % section Frequency Transformation (end)
+
+\section{Listening Test} % (fold)
+\label{sec:listening_test}
+
+% section Listening Test (end)
 % chapter Results (end)
