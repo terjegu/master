@@ -168,21 +168,33 @@ where $a_i=a_i^p$.
 \subsection{Pitch Detection} % (fold)
 \label{sub:pitch_detection}
 Pitch is somewhat the perceptual ``tone'' of the voice and can not directly be measured from the signal. However, the pitch period can be simplified to label the smallest true period of the signal. The inverse of the smallest period of a small analysis interval yields the fundamental frequency $F_0(t)$. If there is no distinct period in the analysis window, it is detected as unvoiced.
-\begin{itemize}
-	\item why exclude voiced segments
-\end{itemize}
-There are many methods of prediction the pitch and detecting voicing in a speech segment. Simple inverse filter tracking (SIFT\abbrev{SIFT}{simple inverse filter tracking}) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+\TODO{why exclude voiced segments}
 
-The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled to a sampling frequency of 2 kHz. Then the signal is passed through an inverse fourth-order LPC filter, which is sufficient for such a low sampling frequency, to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the accuracy we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise which has no correlation.
-\begin{figure}[htbp]
-  \centering
-  \begin{tabular}[h]{c}
-	\xymatrix{ 
-  		x(n) \ar[r] &*+<5mm>[F]{\textifsym{H|L}}\ar[r] &*+<5mm>[F]{\downarrow}\ar[r] &*+<5mm>[F]{1-A(z)} \ar[r] &*+<5mm>[F]{R_{xx}(\cdot)} \ar[r] &*+<5mm>[F]{\txt{$F_0$ detection}} }    
-  \end{tabular}
-  \caption{Signal manipulation for voiced/unvoiced and $F_0$ detection.}
-  \label{fig:mfcc}
-\end{figure}
+There are many methods of prediction the pitch and detecting voicing in a speech signal, in fact, it is written many books on the subject \cite{kleijn95}. They all, however, use some correlation algorithm, with some pre and post processing, to find a distinctive period in the signal.
+
+D. Talkin suggested a method using cross-correlation \cite{talkin95}, in contrast to autocorrelation as used in many other techniques, called robust algorithm for pitch tracking (RAPT\abbrev{RAPT}{robust algorithm for pitch tracking}). The cross-correlation in this matter is much the same as autocorrelation, but considers a correlation window of more than just the current analysis frame. Let $x$ be the a windowed signal segment, the cross-correlation $\chi$ of $x$ is defined as
+\begin{equation}
+	\chi_{i,k} = \sum_{j=m}^{m+n-1}x_j x_{j+k}, \quad k=\sbrackets{0,K-1},m=iz,i=\sbrackets{0,M-1}
+\end{equation}
+where $i$ is the frame index for $M$ frames, $z$ is the number of sample to advance for each frame, $k$ is the lag index and $n$ is the number of samples in the correlation window.
+
+The RAPT algorithm uses two versions of the speech signal, one at the original sample rate and one with significantly reduced sample rate. The reduced sample rate version is passed into a normalised cross-correlation function (NCCF\abbrev{NCCF}{normalised cross-correlation function}) and the local maximum correlation distance is recorded. The results of the first iteration is used as a initialisation of the same procedure with the original signal, where the local maxima of the NCCF are restricted to be in the vicinity of the results of the first iteration. The second iteration yields candidate $f_0$ values and are used in a dynamic programming algorithm which utilises certain properties of the NCCF and voiced signal segments. Such properties are \begin{inparaenum}[\itshape a\upshape)] \item if there are more than one local maximum, the shortest period is the correct choice, \item $f_0$ is slowly varying over time so local maxima in adjacent frames should be located at comparable lags, \item if the change in adjacent frames are significant it should be a doubling or a halving of lags, \item a change in voicing in adjacent frames will occur at low frequencies, \item the short-time spectra of voiced and unvoiced frames are significantly different and \item amplitude tend to increase at the onset of voicing and to decrease at offset.\end{inparaenum}
+
+To find the pitch peak of a analysis frame is simple to search for the maximum value in the vicinity of where its supposed to be according to the fundamental frequency results.
+
+ % Simple inverse filter tracking (SIFT\abbrev{SIFT}{simple inverse filter tracking}) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
+
+% \TODO{new method, signal representation is F0}
+% The fundamental frequency will be lower than 1000 Hz for a normal voice so we are only interested in low frequency part of the signal. First, the speech signal is lowpass-filtered and downsampled to a sampling frequency of 2 kHz. Then the signal is passed through an inverse fourth-order LPC filter, which is sufficient for such a low sampling frequency, to flatten the spectrum. From the excitation from the filtering we compute the short-time autocorrelation and simply detect the highest peak as the pitch period. To enhance the accuracy we can interpolated the autocorrelation in the region of the peak. Moreover, we can detect if the segment is voiced or unvoiced by choosing a minimum level of the normalized autocorrelation peak for the signal to be voiced. This is because the excitation of unvoiced speech can be approximated as white noise which has no correlation.
+% \begin{figure}[htbp]
+%   \centering
+%   \begin{tabular}[h]{c}
+% 	\xymatrix{ 
+%   		x(n) \ar[r] &*+<5mm>[F]{\textifsym{H|L}}\ar[r] &*+<5mm>[F]{\downarrow}\ar[r] &*+<5mm>[F]{1-A(z)} \ar[r] &*+<5mm>[F]{R_{xx}(\cdot)} \ar[r] &*+<5mm>[F]{\txt{$F_0$ detection}} }    
+%   \end{tabular}
+%   \caption{Signal manipulation for voiced/unvoiced and $F_0$ detection.}
+%   \label{fig:mfcc}
+% \end{figure}
 
 
 
@@ -366,7 +378,19 @@ The indices in the resulting shortest path are used to duplicate and/or delete f
 
 \section{Transformation Function} % (fold)
 \label{sec:transformation_function}
-Given a set of time-aligned LP vectors of the source and target speaker, $\mathbf{x}$ and $\mathbf{y}$, and a GMM fitted to a joint vector $\mathbf{z}=\sbrackets{\mathbf{x},\mathbf{y}}$, we want to define a transformation function which yields the most likely target vector given a new source vector
+Given a set of time-aligned LP vectors of the source and target speaker, $\mathbf{x}$ and $\mathbf{y}$, and a GMM fitted to a joint vector $\mathbf{z}=\sbrackets{\mathbf{x},\mathbf{y}}$, as depicted in Figure~\ref{fig:VC_training_full},
+\begin{figure}[htbp]
+	\centering
+	\begin{tabular}[h]{c}
+		\xymatrix{ 
+\mathbf{x} \ar[r] &*+<5mm>[F-,]{\txt{LPC}}\ar[d] &\\ % end line 1
+&*+<5mm>[F-,]{\txt{DTW}} \ar @<3pt>[rr]^<(0.15){\mathbf{x}} \ar @<-3pt>[rr]_<(0.15){\tilde{\mathbf{y}}} & &*+<5mm>[F-,]{\txt{GMM}}\\ % end line 2
+\mathbf{y} \ar[r] &*+<5mm>[F-,]{\txt{LPC}}\ar[u]&&}
+	\end{tabular}
+	\caption{Training of GMM used in full covariance matrix transformation.}
+	\label{fig:VC_training_full}
+\end{figure}
+we want to define a transformation function which yields the most likely target vector given a new source vector
 \newcommand{\fff}{\mathcal F}
 \begin{equation}
 	\fff(\mathbf{x}) = E[\mathbf{y}\vert \mathbf{x}]
@@ -659,7 +683,7 @@ The $L_2$ is a true metric in the sense that they satisfy the triangle inequalit
 \end{definition}
 
 \begin{remark}
-	The $L_2$ metric is the rms log spectral measure in decibel. The factor $4.343$ comes from the conversion from natural logarithm to decibel
+	The $L_2$ metric is the root mean square (RMS) log spectral measure in decibel. The factor $4.343$ comes from the conversion from natural logarithm to decibel
 	\begin{equation}
 		10\log(x) = 10 \frac{\ln(x)}{\ln(10)} = 4.343\ln(x) 
 	\end{equation}	
@@ -680,10 +704,10 @@ For a sentence of several pitch periods the average error in fundamental frequen
 \end{equation}
 where $F_0^t$ is the target frequency and $\hat{F_0}$ is the transformed frequency.
 
-A more fair metric is the normalised error where the original fundamental frequency $F_0^s$, the input to the $F_0$ transformation, is put into consideration
-\begin{equation}
-	\Delta_N F_0 = \frac{\sum_{i} \abs{F_0^t (i)- \hat{F_0} (i)}}{\sum_{i} \abs{F_0^t (i)-F_0^s (i)}}
-\end{equation}
+% A more fair metric is the normalised error where the original fundamental frequency $F_0^s$, the input to the $F_0$ transformation, is put into consideration
+% \begin{equation}
+% 	\Delta_N F_0 = \frac{\sum_{i} \abs{F_0^t (i)- \hat{F_0} (i)}}{\sum_{i} \abs{F_0^t (i)-F_0^s (i)}}
+% \end{equation}
 
 % subsection Pitch metrics (end)
 % section Objective result metrics (end)

@@ -119,7 +119,7 @@ The moving average filter is optimal in removing random noise while retaining a 
 \end{figure}
 The impact of $f_0$-smoothing is depicted in Figure~\ref{fig:f0_smoothing}.
 
-An alternative to the moving average smoothing is to average over several transformation of the same $f_0$, hereby called improved moving average. If the GMM is trained with a joint vector of the previous and next $f_0$ value in addition to the current $f_0$,
+An alternative to the moving average smoothing is to average over several transformation of the same $f_0$, hereby called modified moving average. If the GMM is trained with a joint vector of the previous and next $f_0$ value in addition to the current $f_0$,
 \begin{equation}
 	\mathbf{z}_t = \sbrackets{\mathbf{y}_{cc,t}^T, f_{0,t}(n-1), f_{0,t}(n), f_{0,t}(n+1)}^T 
 \end{equation}
@@ -127,6 +127,7 @@ The output of the transformation would yield a vector of three $f_0$ values. Thr
 \begin{equation}
 	\bar{f}_{0,t} = \frac{1}{3}\pbrackets{f_{0,t-1}(n+1)+f_{0,t}(n)+f_{0,t+1}(n-1)} 
 \end{equation}
+\TODO{what is happening. why not so good. uncorrelated transformations}
 
 A third smoothing technique was tested as well. By including three consecutive $f_0$ values in the transformation the gradient in the $f_0$ contour is available
 \begin{equation}
@@ -166,9 +167,7 @@ The new pitch labels were used in the PSOLA routine, Section~\ref{sub:psola}, to
 \begin{equation}
 	\tilde{x}(n) = \frac{1}{1 - \sum_{k=1}^{p-1} \tilde{\alpha}_k \tilde{e}(n-k)}
 \end{equation}
-The last memory states from the synthesis of the current frame were used as initial states in the next frame to smoothen the stitching of frames.
-
-
+The last memory states from the synthesis of the current frame were used as initial states in the next frame to get a smooth frame stitching.
 
 % section Synthesis of Transformed Feature Parameters (end)
 
