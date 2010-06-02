@@ -1,26 +1,28 @@
 \chapter{Conclusion} % (fold)
 \label{cha:conclusion}
 
-\section{Sources of error} % (fold)
-\label{sec:sources_of_error}
+In this thesis, a probabilistic model for transforming a voice to sound like another specific voice has been tested. The model is fully automatic and only requires some 100 training sentences from both speakers with the same content. The classical source-filter decomposition allows prosodic and spectral transformation to be performed independently. The transformations are based on a Gaussian mixture model and a transformation function suggested by Y. Stylianou \cite{stylianou98}. Feature vectors of the same content from the source and target speaker, aligned in time by dynamic time warping, was fitted to the GMM. The short time spectra, represented as cepstral coefficients and derived from LPC \cite{atal68}, and the pitch periods, represented as fundamental frequency estimated from the RAPT algorithm \cite{talkin95}, were transformed with the same probabilistic transformation function.
 
-% section Sources of error (end)
+An important part of the training procedure is the time alignment by dynamic time warping (DTW). The DTW was configured to not alter the source feature vectors to get a discrete mapping of every source vector to a target vector. The global constraints were set to guarantee a maximum modification of the target vectors and the local constraints were optimised for the Itakura distance \cite{itakura75min}.
+
+Time aligned feature vectors were fitted to a 128 mixture GMM with diagonal covariance matrices, used in the transformation function. The cross-correlation matrix $\mathbf{\Sigma}^{yx}$, which is not available from the diagonal GMM, was estimated from training data. When both input and output of the transformation is known, the only unknown parameter is the cross-correlation matrix which could be found by the normal equations \cite{strang06}. The transform was tested on 10 sentences and revealed an over-smoothed spectrum but with small mean deviation from the target spectrum. The fundamental frequency was transformed by a 64 mixture full matrix GMM and tested on the same 10 sentences. Objective results reviled an average error about zero Hz, but a rather large standard deviation.
+
+Given that the transformation of the cepstral vectors is performing well, the pitch transformation could be separated in a standalone transformation with the transformed cepstrum as input. In the presented implementation the cepstrum transformation was not precise enough and the approach with source data as input to a joint transformation had a lower standard deviation for the fundamental frequency transformation, hence, it preformed better. Nevertheless, the standalone transformation was chosen for the frequency spectrum transformation.
+
+A listening test was performed with the best setup from objective tests and the results indicates that it is possible to recognise the transformed voice as the target speaker with a 72 \% probability. However, it was a pretty basic test where the identification options were limited to only the source and target speaker. The synthesised voiced were affected by a muffling effect due to incorrect frequency transformation and the prosody had a closer match to a robot than either of the speakers. There are clearly still some work to be done before the voice transformation could be used in commercial product.
 
 
-\section{Further work} % (fold)
-\label{sec:further_work}
-\begin{itemize}
-	\item In $f_0$ transformation: transformed CC as input is not good
-	\item codebook of excitation signals m=16, n=80
-	\item Gain transformation
-	\item need more training data and mixtures, cite LSF for different approach
-	\item major shortcomings is lack of time-scale transformation
-	\begin{itemize}
-		\item ok if source speaker tries to imposture a target speaker
-		\item not ok to create a random voice from a synthetic voice.
-		\item use basic dtw to find a one-to-many mapping or many-to-one
-	\end{itemize}
-\end{itemize}
+\section{Future work} % (fold)
+\label{sec:future_work}
+
+The major shortcomings of the presented implementation is the lack of time-scale modifications. Although there is some scaling in the PSOLA synthesis where the pitch period is modified, but pitch cycles are not discarded or duplicated. If the source and target speaker has a significant different speaking pace, this yields a problem in the speaker identification, verified in the listening test. A mapping rule for discarding or duplicating pitch cycles could be found in the DTW mapping where one vector is mapped to several vectors. However, if the goal is to impersonate a target speaker this would not be a problem. Energy transformation to modify the perceived loudness of in speech would also make the transformation more convincing. While this somewhat implemented by transforming the $c_0$ coefficient with questionable success, it could be implemented as part of the excitation modification as well. 
+
+The increase to correlation of consecutive transformed fundamental frequencies, the GMM could be trained by a a set of $f_0$ parameters corresponding to a set of cepstral vectors, $\mathbf{Z}=\sbrackets{\mathbf{y}_{cc}^1,\mathbf{y}_{cc}^2,\dotsc,\mathbf{y}_{cc}^n,f_{0}^1,f_{0}^2,\dotsc,f_{0}^n}$ yielding a many-to-many mapping instead of one-to-one, as suggested by \cite{najjary04}. The complexity of the pitch transform would increase by many order of magnitudes, but the transformed $f_0$ contour might be more natural.
+
+The excitation from the inverse LP filtering is far from white noise. By listening to the excitation signal the content of the original speech signal could be recognised. In stead of using the excitation from the source speaker in the synthesis, a small database of excitation signals from the target speaker could be used with the same transformation function to map the excitation signal to one from the target speaker. The excitation signal must represented in regular time domain which yields vectors of approximately 80 sample for a 10 ms frame and a sample frequency of 8 kHz. By choosing a GMM with \eg 16 mixtures to computational time would be acceptable.
+
+The frequency transform would benefit from more mixtures in the GMM, but again, that would require more training data which might be a problem. E. Helander \cite{helander08} suggested a method based on LSF feature vectors in stead of cepstral coefficients which might cope with the training data issue.
+
 % section Further work (end)
 
 % chapter Conclusion (end)

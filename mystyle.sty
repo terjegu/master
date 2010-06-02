@@ -1,33 +1,18 @@
 \ProvidesPackage{mystyle}
 
-% ---------- LAYOUT ----------
-% \oddsidemargin 15mm
-% \evensidemargin 0pt
-% \textwidth 5.7in
-% \textheight 234mm
-% \topmargin 0in
-% \headheight 0in                 % no header
-% \textheight 8.5in                       
-% \headsep \headheight
-% \footskip .4in
 
 % ---------- PACKAGES ----------
-% \usepackage[utf8]{inputenc} 
-% \usepackage[T1]{fontenc}
+% \usepackage[latin1]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 % \usepackage{mathdesign} % utopia,garamond,charter
 % \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
-\usepackage{color}
-\usepackage[pdftex]{graphicx}
+\usepackage{graphicx,color}
 \usepackage{fancyhdr}
 \usepackage[Glenn]{fncychap}
-% \usepackage{titlesec}
-% \titleformat{\chapter}[display]%             
-%     {\relax}{\raggedleft{\color{halfgray}\chapterNumber\thechapter} \\ }{0pt}%
-%     {\titlerule\vspace*{.9\baselineskip}\raggedright\spacedallcaps}[\normalsize\vspace*{.8\baselineskip}\titlerule]%
-
-\usepackage[expansion=false]{microtype}
+% \usepackage[expansion=false]{microtype}
 % \usepackage[firstpage]{draftwatermark}
 % \usepackage[firstpage]{xwatermark}
 \usepackage{booktabs} 		% Better rulers in tables
@@ -78,13 +63,13 @@
 % \newtheorem{corollary}[theorem]{Corollary}
 
 \theoremstyle{definition} 
-\newtheorem{definition}[theorem]{Definition}
+\newtheorem{definition}{Definition}[chapter]
 % \newtheorem{notation}[theorem]{Notation}
 % \newtheorem{convention}[theorem]{Convention}
 % \newtheorem{example}[theorem]{Example}
 
 \theoremstyle{remark} 
-\newtheorem{remark}[theorem]{Remark}
+\newtheorem{remark}{Remark}[chapter]
 
 
 % ---------- ALIASES ----------
@@ -104,6 +89,41 @@
 \providecommand{\pbrackets}[1]{\left(#1\right)}
 \renewcommand{\le}{\leqslant}
 \renewcommand{\ge}{\geqslant}
+
+% ---------- Less restictive figure placement ----------
+\renewcommand{\textfraction}{0.15}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.65}
+\renewcommand{\floatpagefraction}{0.80}
+
+% Vertical space between a float and text
+% \setlength{\intextsep}{12pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{15pt plus 2pt minus 4pt}
+
+% ---------- Figure sizes ----------
+% 1 per column:
+\newlength{\matlabone} 
+\setlength{\matlabone}{.75\textwidth}
+
+% 2 per column
+\newlength{\matlabtwo}
+\setlength{\matlabtwo}{0.45\textwidth}
+
+
+% 3 per column
+\newlength{\matlabthree}
+\setlength{\matlabthree}{0.3\textwidth}
+
+% 2x2 graphs per figure
+\newlength{\matlabfour}
+\setlength{\matlabfour}{0.45\textwidth}
+
+
+% ---------- DEFINE HEADER AND FOOTERS ----------
+\fancyhf{}
+\fancyhead[LE]{{\nouppercase{\leftmark}}}
+\fancyhead[RO]{{\nouppercase{\rightmark}}}
+\cfoot{\thepage}
 
 
 % ---------- NOTES IN PAPER ----------

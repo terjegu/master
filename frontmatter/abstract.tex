@@ -1,0 +1,15 @@
+% \chapter{Abstract} % (fold)
+% \label{cha:abstract}
+% Voice Transformation refers to the process of modifying a voice from a speaker so that it sounds like it has been produced by a different speaker. The main speaker-specific characteristics are determined by the short range frequency spectrum and the fundamental frequency of the vocal cords. This work will be based on a project that implemented a system for filter transformation based on Gaussian mixture models. Variants and improvements of the basic system will be studied, and selected solution should be implemented and evaluated. If time permits, one should also study methods for excitation transformation.
+% % chapter Abstract (end)
+% 
+\chapter*{Abstract} % (fold)
+\label{cha:abstract}
+	In this thesis, a probabilistic model for transforming a voice to sound like another specific voice has been tested. The model is fully automatic and only requires some 100 training sentences from both speakers with the same content. The classical source-filter decomposition allows prosodic and spectral transformation to be performed independently. The transformations are based on a Gaussian mixture model and a transformation function suggested by Y. Stylianou \cite{stylianou98}. Feature vectors of the same content from the source and target speaker, aligned in time by dynamic time warping, was fitted to the GMM. The short time spectra, represented as cepstral coefficients and derived from LPC \cite{atal68}, and the pitch periods, represented as fundamental frequency estimated from the RAPT algorithm \cite{talkin95}, were transformed with the same probabilistic transformation function.
+
+Several techniques of spectrum and pitch transformation were assessed in addition to some novel smoothing techniques of the fundamental frequency contour. The pitch transform was implemented on the excitation signal from the inverse LP filtering by time domain PSOLA. The transformed spectrum parameters was used in the synthesis filter with the transformed excitation as input to yield the transformed voice.
+
+	A listening test was performed with the best setup from objective tests and the results indicates that it is possible to recognise the transformed voice as the target speaker with a 72 \% probability. However, the synthesised voiced were affected by a muffling effect due to incorrect frequency transformation and the prosody had a closer match to a robot than either of the speakers.
+% chapter Abstract (end)
+
+

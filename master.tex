@@ -4,67 +4,64 @@
 %  Created by Terje Gundersen on 2009-12-22.
 %
 %
-\documentclass[11pt,a4paper,twoside]{report} 
+\documentclass[10pt,b5paper]{book} 
 \usepackage{mystyle}
-% \makeindex
-
-
 
 % ---------- BEGIN DOCUMENT --------------
 \begin{document}
-\pagenumbering{Roman}
-\input{tex/titlepage.tex}
-% ---------- CLEAR PAGE START --------------
-\pagestyle{empty}
-\vspace*{\fill}
-\begin{center}
-\emph{ }
-\end{center}
-\vspace{\fill}
-\clearpage
-% ---------- CLEAR PAGE END --------------
-\pagenumbering{roman}
-\input{tex/abstract.tex}
-\cleardoublepage
-\input{tex/preface.tex}
-\cleardoublepage
+\frontmatter
+\pagestyle{fancy}
+
+\input{frontmatter/abstract.tex}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+% \input{frontmatter/preface.tex}
+% \clearpage{\thispagestyle{empty}\cleardoublepage}
+
 \tableofcontents
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
 \listoffigures
 \addcontentsline{toc}{chapter}{List of Figures}
+\markboth{List of Figures}{List of Figures}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
 \listoftables
 \addcontentsline{toc}{chapter}{List of Tables}
+\markboth{List of Tables}{List of Tables}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
 \Listofabbrev
-\cleardoublepage
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
 % ---------- INTRODUCTION ----------
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[LE]{{\nouppercase{\leftmark}}}
-\fancyhead[RO]{{\nouppercase{\rightmark}}}
-\cfoot{\thepage}
-\pagenumbering{arabic}
+\mainmatter
+% \pagenumbering{arabic}
 \input{tex/introduction.tex}
-\cleardoublepage
+\clearpage{\thispagestyle{empty}\cleardoublepage}
 \input{tex/theory.tex}
-\cleardoublepage
+\clearpage{\thispagestyle{empty}\cleardoublepage}
 \input{tex/implementation.tex}
-\cleardoublepage
+\clearpage{\thispagestyle{empty}\cleardoublepage}
 \input{tex/results.tex}
-% \cleardoublepage
-% \input{tex/discussion.tex}
-\cleardoublepage
+\clearpage{\thispagestyle{empty}\cleardoublepage}
 \input{tex/conclusion.tex}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+% ---------- APPENDIX ----------
+\appendix
+\input{appendices/appendix_listening.tex}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
 
 % ---------- BIBLIOGRAPHY ----------
-% \cleardoublepage
+\backmatter
 \bibliographystyle{ieeetr}
 \small
 \bibliography{bibliografi}
+\addcontentsline{toc}{chapter}{Bibliography}
 
-% ---------- APPENDIX ----------
-% \appendix
-% \input{tex/appendix_a.tex}
 
-% ---------- INDEX ----------
-% \printindex
+
+
 
 \end{document} 

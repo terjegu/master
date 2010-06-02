@@ -14,117 +14,100 @@
 
 \section{Fundamental Frequency Transformation} % (fold)
 \label{sec:fundamental_frequency_ransformation}
-The standalone fundamental frequency transform was tested in a controlled environment with the target cepstrum as input from the training set. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33000 training vectors. The results from the different setups are presented in Table~\ref{tab:pitch_pred_target_input}.
+The smoothing techniques for the frequency transform was tested in a controlled environment with the target cepstrum as input, not included in the training set however. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33~000 training vectors. The results from the different smoothing techniques are presented in Table~\ref{tab:pitch_pred_target_input}. NPD values greater than 1 means that the source pitch is closer to the target pitch than the transformed pitch.
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{$F_0$ transformation with target cepstrum vectors as input for 10 sentences.}
+		\topcaption{$f_0$ transformation with target cepstrum vectors as input for 10 sentences.}
 		\label{tab:pitch_pred_target_input}	
-		\begin{tabular}{lrr}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_{error}$} & \multicolumn{1}{c}{$\sigma_{error}$} & \multicolumn{1}{c}{\emph{NPD}} \\
 			\midrule
-			Source $F_0$ & 24.82 Hz & 23.38 Hz \\
-			No smoothing & -0.75 Hz & 20.31 Hz\\
-			Moving average & -0.77 Hz & 19.71 Hz\\
-			Modified m-avg & -1.58 Hz & 19.19 Hz \\
-			Delta limit & -1.71 Hz & 19.93 Hz \\
+			% Source $f_0$ & 24.82 Hz & 23.38 Hz \\
+			No smoothing & -0.75 Hz & 20.31 Hz & 0.5959\\
+			Moving average & -0.77 Hz & 19.71 Hz & 0.5783 \\
+			Modified m-avg & -1.58 Hz & 19.19 Hz & 0.5647 \\
+			Delta limit & -1.71 Hz & 19.93 Hz & 0.5865 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
 \end{table}
 
-% \begin{table}[htbp]
-% 	\begin{center}
-% 		\topcaption{$F_0$ transformation with target cepstrum vectors as input for 10 sentences.}
-% 		\label{tab:pitch_pred_target_input}	
-% 		\begin{tabular}{lrr}
-% 			\toprule
-% 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{Mean}} & \multicolumn{1}{c}{\emph{Std deviation}} \\
-% 			\midrule
-% 			Source $F_0$ & 29.32 Hz & 17.40 Hz \\
-% 			No smoothing & 15.19 Hz & 13.50 Hz\\
-% 			Moving average & 14.77 Hz & 13.06 Hz\\
-% 			Improved m-avg & 14.69 Hz & 12.45 Hz \\
-% 			Delta limit & 14.69 Hz & 12.45 Hz \\
-% 			\bottomrule			
-% 		\end{tabular}		
-% 	\end{center}
-% \end{table}
-
-The results are close to the results of T. En-Najjary \etal \cite{najjary03new}. ``Improved moving average'' has the smallest standard deviation, but the mean error is not as good as the ``moving average'' or the ``no smoothing'' setups. Moving average appears to be the best choice. 
+The results are comparable to the findings of T. En-Najjary \etal \cite{najjary03new} and indicates that there is a good correlation between cepstral coefficients and fundamental frequency. Given that the target CC are available, the fundamental frequency transformation works quite well. ``Improved moving average'' has the smallest standard deviation, but the mean error is not as good as the ``moving average'' or the ``no smoothing'' setups. Since the mean error could be set to zero by a scaling, the standard deviation is the most important metric. However, the mean $f_0$ varies a lot from one sentence to another in the original speech signal. So even if a scaling would improve the overall mean error, it will in most cases not enhance the correctness on a sentence by sentence basis. Another drawback by this transformation is that the transformed pitch is more monotone than the original speech. The standard deviation in the $f_0(n)$ sequence of 10 sentences of the transformed $f_0$ is approximately 13 Hz while in the original speech it is about 25 Hz.
 
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.9\textwidth]{fig/pitch_trans}
-		\caption{Contour of $F_0$ transformation with different smoothing techniques and target $Y_{cc}$ as input.}
+		\includegraphics[width=.85\textwidth]{fig/f0_compare}
+		\caption{Typical contour of $f_0$ transformation with different smoothing techniques and target $Y_{cc}$ as input. Target contour marked with red.}
 		\label{fig:pitch_trans}
 	\end{center}
 \end{figure}
-Figure~\ref{fig:pitch_trans} depicts the transformed $F_0(t)$ for a test sentence. The transform without smoothing does not appear to be too bad from Table~\ref{tab:pitch_pred_target_input}, but Figure~\ref{fig:pitch_trans} reveals a fluctuating $F_0$ which is not very natural. The smoothing techniques produce a $F_0$ contour which is similar to the correct contour, and in this particular case the moving average with $M=3$ is the best choice. \TODO{update figure title with M=3}
+Figure~\ref{fig:pitch_trans} depicts the transformed $f_0(t)$ for a test sentence. The transform without smoothing does not appear to be too bad from Table~\ref{tab:pitch_pred_target_input}, but Figure~\ref{fig:pitch_trans} reveals a fluctuating $f_0$ which is not very natural. The smoothing techniques produce a $f_0$ contour which is similar to the correct contour, and in this particular case the moving average with $M=3$ seems to be the best choice.
 
-In a real scenario the available input to the $F_0$ transform is the transformed $\mathbf{\hat{X}}_{cc}$ vectors. 
+In a real scenario the available input to the $f_0$ transform is the transformed $\mathbf{\hat{X}}_{cc}$ vectors. 
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{$F_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
+		\topcaption{$f_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
 		\label{tab:pitch_pred_transformed_input}	
-		\begin{tabular}{lrr}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$} & \multicolumn{1}{c}{\emph{NPD}} \\
 			\midrule
-			Source pitch & 24.82 Hz & 23.38 Hz\\
-			No smoothing & -0.05 Hz  & 26.29 Hz\\
-			Moving average & -0.08 Hz  & 24.57 Hz\\
-			Modified m-avg & 1.18 Hz & 23.59 Hz\\
-			Delta limit & 1.25 Hz & 24.56 Hz \\
+			% Source pitch & 24.82 Hz & 23.38 Hz\\
+			No smoothing & -0.05 Hz  & 26.29 Hz & 0.7709\\
+			Moving average & -0.08 Hz  & 24.57 Hz & 0.7206\\
+			Modified m-avg & 1.18 Hz & 23.59 Hz & 0.6927\\
+			Delta limit & 1.25 Hz & 24.56 Hz & 0.7211 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}
 \end{table}
-% \begin{table}[htbp]
-% 	\begin{center}
-% 		\topcaption{$F_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
-% 		\label{tab:pitch_pred_transformed_input}	
-% 		\begin{tabular}{lrr}
-% 			\toprule
-% 			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{$\mu_e$} & \multicolumn{1}{c}{$\sigma_e$}\\
-% 			\midrule
-% 			Source pitch & 29.32 Hz & 17.40 Hz\\
-% 			normal & -0.95 Hz & 20.84 Hz \\
-% 			m avg & -0.92 Hz & 19.7358 Hz \\
-%			improved m avg & -0.95 Hz & 19.34 Hz \\
-% 			delta lim & -1.13 Hz & 20.60 Hz\\
-% 			\bottomrule			
-% 		\end{tabular}		
-% 	\end{center}
-% \end{table}
-\TODO{check results}
-This introduces another source of error and the transformation precision is degraded as shown in Table~\ref{tab:pitch_pred_transformed_input}. The table shows an average result from 10 sentences.
 
-The modified moving average is a moving average filter over three independent transformation of one $f_0(t)$. But is not certain that it is transformations of the same $f_0(t)$ since the value from the previous transformation $f_{0,t-1(n+1)}$ is the $f_0$ that should be the next after the current $f_{0,t}(n)$. When the transformation input are independent transformed cepstral vectors it is not given that consecutive input vectors would appear as consecutive in a real speech segment of the target speaker, hence the three $f_0$ values in the average operation might correspond to quite different pitch periods.
+This introduces another source of error and the transformation precision is degraded as shown in Table~\ref{tab:pitch_pred_transformed_input}. Again the modified moving average had the lowest standard deviation. The table shows an average result from 10 sentences.
 
-To relax the sources of error the fundamental frequency can be transformed together with the spectrum as a joint vector $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},F_0}$. Table~\ref{tab:f0_joint_transform} shows a comparison to the standalone transformation with transformed cepstrum vectors as input and the joint transformation.
+The modified moving average is a moving average filter over three independent transformation of one $f_0(t)$. But is not certain that it is transformations of the same $f_0(t)$ since the value from the previous transformation $f_{0,t-1(n+1)}$ is the $f_0$ that should be the next after the current $f_{0,t}(n)$. When the transformation input are independent transformed cepstral vectors it is not given that consecutive input vectors would appear as consecutive in a real speech segment of the target speaker, hence the three $f_0$ values in the average operation might correspond to quite different pitch periods, unless the cepstral transformation is flawless.
+
+Since there is a correlation between the source cepstrum and the target cepstrum as well as the target cepstrum and the target fundamental frequency, a transformation of target $f_0$ with source cepstrum as input is worthy alternative. A comparison of transformation with source cepstrum $\mathbf{x}_{cc}$ and transformed cepstrum $\mathbf{\hat{x}}_{cc}$ as input is shown in Table~\ref{tab:f0_source_transform}
 \begin{table}[htbp]
 	\begin{center}
-		\topcaption{Joint fundamental frequency and spectrum transformation}
-		\label{tab:f0_joint_transform}
-		\begin{tabular}{lll}
+		\topcaption{Fundamental frequency transform with source cepstrum as input.}
+		\label{tab:f0_source_transform}
+		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}}\\
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}} & \multicolumn{1}{c}{\emph{NPD}}\\
 			\midrule
-			Standalone & -0.05 & 26.29 \\
-			Joint transform & -3.43 & 22.26 \\
+			Transformed cepstrum & -0.05 Hz & 26.29 Hz & 0.7709\\
+			Source cepstrum & -2.93 Hz & 22.63 Hz & 0.6690\\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
 \end{table}
-Table~\ref{tab:f0_joint_transform} shows that the joint transformation decreases the stand deviation, but increases the mean error. The differences are not dramatic which means that a combined transformation could be a good option.
 
-Although the transformations presented yields the correct average fundamental frequency, the prosody in a transformed sentence are not necessary correct. It could, however, be improved by a certain ad-hoc tricks. The transformation in hand is clearly not context dependent. If the context was known the $F_0$ contour could be scaled, with \eg a parabola for a typical statement, to enhance the performance. Without context information this is impossible since the prosody in a statement is clearly different than in a question. The source $F_0$ could be used in the transformation to introduce some context awareness. 
+To relax the computational complexity, the fundamental frequency can be transformed together with the spectrum as a joint vector $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},f_0}$. Table~\ref{tab:f0_joint_transform} shows a comparison to the standalone transformation with transformed cepstrum vectors as input and the joint transformation.
+\begin{table}[htbp]
+	\begin{center}
+		\topcaption{Joint fundamental frequency and spectrum transformation}
+		\label{tab:f0_joint_transform}
+		\begin{tabular}{lrrr}
+			\toprule
+			\multicolumn{1}{c}{\emph{Method}} & \multicolumn{1}{c}{\emph{$\mu_e$}} & \multicolumn{1}{c}{\emph{$\sigma_e$}} & \multicolumn{1}{c}{\emph{NPD}}\\
+			\midrule
+			Standalone & -0.05 Hz & 26.29 Hz & 0.7709\\
+			Joint transform & -3.43 Hz & 22.26 Hz & 0.6605\\
+			\bottomrule			
+		\end{tabular}		
+	\end{center}	
+\end{table}
+Table~\ref{tab:f0_joint_transform} shows that the joint transformation decreases the standard deviation, but increases the mean error. 
+
+Although the transformations presented yields a nearly perfect average fundamental frequency, the prosody in a transformed sentence are not necessary correct. It could, however, be improved by certain ad-hoc tricks. The transformation in hand is clearly not context dependent. If the context was known the $f_0$ contour could be scaled, with \eg a parabola for a typical statement, to enhance the performance. Without context information this is impossible since the prosody in a statement is clearly different than in a question. The source $f_0$ could be used in the transformation to introduce some context awareness. 
+
+As mentioned above, the mean error could be dealt with by a scaling which means that the joint transformation with source cepstrum as input with modified moving average smoothing yields the best transformation with the GMM and test sentences in question.
 % section Fundamental Frequency Transformation (end)
 
 \section{Frequency Spectrum Transformation} % (fold)
 \label{sec:frequency_transformation}
-The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $F_0$ transformation. Four different setups were tested and the average results of the Itakura distance \eqref{eq:itakura_distance}, the $L_2$ metric \eqref{eq:l2_metric} and the cepstral distance \eqref{eq:cepstral_distance} of 10 sentences are shown in Table~\ref{tab:absolute_freq_results}. The distance of the source and target feature vectors before transformation are; itakura = 0.6053, $L_2$ = 4.4985 and CD = 0.4483. An ideal transformation would yield 0 for all metrics.
+The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $f_0$ transformation. Four different setups were tested and the average results of the Itakura distance \eqref{eq:itakura_distance}, the $L_2$ metric \eqref{eq:l2_metric} and the cepstral distance \eqref{eq:cepstral_distance} of 10 sentences are shown in Table~\ref{tab:absolute_freq_results}. The distance of the source and target feature vectors before transformation are; itakura = 0.6053, $L_2$ = 4.4985 and CD = 0.4483. An ideal transformation would yield 0 for all metrics.
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{Absolute error in frequency transformation.}
@@ -167,7 +150,7 @@ A different point of view is the relative improvement to the starting point. The
 		\label{tab:normalised_freq_results}
 		\begin{tabular}{lrrr}
 			\toprule
-			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura$_N$}} & \multicolumn{1}{c}{\emph{N-L$_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
+			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{N-Itakura}} & \multicolumn{1}{c}{\emph{N-L$_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
 			\midrule
 			Normal & 0.7542 & 0.8174 & 0.6553 \\
 			Pre-emphasis &  0.6514 & 0.7545 & 0.5780 \\
@@ -182,41 +165,41 @@ The different techniques does not appear to have a positive effect on the perfor
 The motivation for applying pre-emphasis is to enhance the transformation quality in high frequencies.
 \begin{figure}[htbp]
 	\begin{center}
-	\subfigure[Without pre-emphasis]
-	{
-		\includegraphics[width = .45\textwidth]{fig/freq_100}
-		\label{fig:freq_100}
-	}
-	\subfigure[Pre-emphasis applied]
-	{
-		\includegraphics[width = .45\textwidth]{fig/freq_100_pre}
-		\label{fig:freq_100_pre}
-	}
-	\subfigure[Without pre-emphasis]
-	{
-		\includegraphics[width = .45\textwidth]{fig/freq_125}
-		\label{fig:freq_125}
-	}
-	\subfigure[Pre-emphasis applied]
-	{
-		\includegraphics[width = .45\textwidth]{fig/freq_125_pre}
-		\label{fig:freq_125_pre}
-	}
+	\subfigure[Without pre-emphasis]{\label{fig:freq_100}
+		\includegraphics[width=\matlabfour]{fig/freq_15}}
+	\subfigure[Pre-emphasis applied]{\label{fig:freq_100_pre}
+		\includegraphics[width=\matlabfour]{fig/freq_15_pre}}
+	\subfigure[Without pre-emphasis]{\label{fig:freq_125}
+		\includegraphics[width=\matlabfour]{fig/freq_125}}
+	\subfigure[Pre-emphasis applied]{\label{fig:freq_125_pre}
+		\includegraphics[width=\matlabfour]{fig/freq_125_pre}}
 	\caption{The effect of pre-emphasis on magnitude spectrum.}
 	\label{fig:pre_emphasis_magnitude_spectrum}
 	\end{center}
 \end{figure}
-As depicted in Figure~\ref{fig:pre_emphasis_magnitude_spectrum} this appear to not be necessary. Transformed spectrum tends to have more or the same amount of energy in the high frequencies than the target spectrum. With pre-emphasis applied the differences would only be further increased.
+As depicted in Figure~\ref{fig:pre_emphasis_magnitude_spectrum} this does not appear to be necessary. Transformed spectrum does not have a higher error in the high frequencies than in the low frequencies, Figure~\ref{fig:freq_100} and \ref{fig:freq_125}. With pre-emphasis applied the overall error is only increased, Figure~\ref{fig:freq_100_pre} and \ref{fig:freq_125_pre}.
 
 The setup with the best performance was the straight forward implementation without pre-emphasis and including the energy coefficient $c_0$. The average density of the LPC coefficients from 10 sentences, excluding the first which was 1 for all vectors, yielding a total of 28 000 parameters, are depicted in Figure~\ref{fig:hist_lp}.
+% \begin{figure}[htbp]
+% 	\begin{center}
+% 		\includegraphics[width=.8\textwidth]{fig/hist_lp}
+% 		\caption{Comparison of LP parameters distributions.}
+% 		\label{fig:hist_lp}
+% 	\end{center}
+% \end{figure}
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.8\textwidth]{fig/lp_hist}
-		\caption{Comparison of LP parameters distributions.}
-		\label{fig:hist_lp}
+	\subfigure[Source LP]{\label{fig:hist_source}
+		\includegraphics[width=\matlabthree]{fig/hist_source}}
+	\subfigure[Target LP]{\label{fig:hist_target}
+		\includegraphics[width=\matlabthree]{fig/hist_target}}
+	\subfigure[Transformed LP]{\label{fig:hist_conv}
+		\includegraphics[width=\matlabthree]{fig/hist_conv}}
+	\caption{Comparison of LP parameters distributions.}
+	\label{fig:hist_lp}
 	\end{center}
 \end{figure}
-The source and target LP coefficients are almost evenly distributed, while the distribution of the converted coefficients differ from the target distribution. Even though they have the same mean value, the converted parameters has a more flat distribution and are dense in different regions than the target distribution.
+The source Figure~\ref{fig:hist_source} and target LP coefficients Figure~\ref{fig:hist_target} are almost evenly distributed, while the distribution of the converted coefficients Figure~\ref{fig:hist_conv} differ from the target distribution. The target distribution is more narrow than the source distribution, and the transformed distribution reflects these differences but a bit too much. Even though they have the same mean value, the converted parameters has a more narrow distribution and are dense in different regions than the target distribution.
 
 Table~\ref{tab:spectrum_joint_transform} shows a comparison on the spectrum transformation of joint and standalone transformation.
 \begin{table}[htbp]
@@ -249,17 +232,18 @@ Table~\ref{tab:absolute_freq_results} and Figure~\ref{fig:hist_lp} shows that th
 			\toprule
 			\multicolumn{1}{c}{\emph{Correct recognition}} & \multicolumn{1}{c}{\emph{Wrong recognition}} & \multicolumn{1}{c}{\emph{No recognition}}\\
 			\midrule
-			75 \% & 15 \% & 10 \% \\
+			72 \% & 22 \% & 6 \% \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
 \end{table}
+A more detailed test score matrix could be found in Appendix~\ref{cha:individual_listening_test_score}.
 
 The small differences in the objective results of the frequency transformation were reflected as even smaller differences in the synthesised voice. A bad frequency transformation was tested, \ie few training vectors and small number of GMM mixtures, and yielded noise artefacts in the synthesised signal. However, the differences in the final setups had negligible differences in the synthesised signal. Nevertheless, there are no significant disadvantages in choosing the best setup.
 
-The pitch transform benefitted from the smoothing techniques, but it was small differences between the smoothing techniques. Synthesised voice without smoothing applied was less natural than with smoothing. 
+The pitch transform benefitted from the smoothing techniques, but it was small differences between the smoothing techniques. Synthesised voice without smoothing applied was less natural than with smoothing. Even though the average error in the transformed $f_0$ was about zero, the standard deviation was almost 25 Hz which resulted in a mean error in one of the test sentences was as high as 35 Hz which where definitively noticeable.
 
-The results in Table~\ref{tab:subjective_listening_results} are promising, but the test person were only given two choices really. If there were presented with several possible target voices, the results would probably be a lot worse. The major shortcomings of this transformation implementation is the lack of time-scale modifications. There is some time-scale modification in the PSOLA with the transformed pitch, but pitch cycles are not discarded or duplicated. Meaning that the number of pitch periods are the same for the source speaker and the transformed voice. The test voices in the subjective test differed in a lot of aspects. The mean fundamental frequency differed by almost 30 Hz and the length in seconds of the same sentence differed on average with 0.9 seconds. It seemed to be easy to detect the correct voice if only concentrating on the pitch, and also the pronunciation of words seemed recognisable. But the fact that the length of a sentence was not modified enough was the main source of recognition error. This was especially noticeable in transformation from the slow low-pitched voice to the faster speaker with a higher pitch. It might be possible to implement duplications and discarding of frames in the dynamic time warping. The statistical data for which frames to discard or duplication might be collected from the DTW when one feature frame is mapped to more than one frame. In the current implementation the number of source frames are not modified.
+The results in Table~\ref{tab:subjective_listening_results} are promising, but the test person were only given two choices really. If there were presented with several possible target voices, the results would probably be a lot worse. The major shortcomings of this transformation implementation is the lack of time-scale modifications. There is some time-scale modification in the PSOLA with the transformed pitch, but pitch cycles are not discarded or duplicated. Meaning that the number of pitch periods are the same for the source speaker and the transformed voice. The test voices in the subjective test differed in a lot of aspects. The mean fundamental frequency differed by almost 30 Hz and the length in seconds of the same sentence differed on average by 20 \%. It seemed to be easy to detect the correct voice if only concentrating on the pitch, and also the pronunciation of words seemed recognisable. But the fact that the length of a sentence was not modified enough was the huge source of recognition error. This was especially noticeable in transformation from the slow low-pitched voice to the faster speaker with a higher pitch. It might be possible to implement duplications and discarding of frames in the dynamic time warping. The statistical data for which frames to discard or duplication might be collected from the DTW when one feature frame is mapped to more than one frame. The number of source frames are not modified in the current implementation.
 
 
 % section Listening Test (end)
