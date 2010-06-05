@@ -14,7 +14,7 @@
 
 \section{Fundamental Frequency Transformation} % (fold)
 \label{sec:fundamental_frequency_ransformation}
-The smoothing techniques for the frequency transform was tested in a controlled environment with the target cepstrum as input, not included in the training set however. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33~000 training vectors. The results from the different smoothing techniques are presented in Table~\ref{tab:pitch_pred_target_input}. NPD values greater than 1 means that the source pitch is closer to the target pitch than the transformed pitch.
+The smoothing techniques for the frequency transform was tested in a controlled environment with the target cepstrum as input, not included in the training set however. The transformation used a 64 mixture GMM with full covariance matrices and was trained with 100 sentences where the unvoiced frames were discarded, yielding a total of 33~000 training vectors. The results from the different smoothing techniques are presented in Table~\ref{tab:pitch_pred_target_input}. NPD values greater than 1 means that the source pitch is closer to the target pitch than the transformed pitch. The standard deviation of the error by using a scaled source pitch is $23.38$ Hz.
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{$f_0$ transformation with target cepstrum vectors as input for 10 sentences.}
@@ -44,7 +44,7 @@ The results are comparable to the findings of T. En-Najjary \etal \cite{najjary0
 \end{figure}
 Figure~\ref{fig:pitch_trans} depicts the transformed $f_0(t)$ for a test sentence. The transform without smoothing does not appear to be too bad from Table~\ref{tab:pitch_pred_target_input}, but Figure~\ref{fig:pitch_trans} reveals a fluctuating $f_0$ which is not very natural. The smoothing techniques produce a $f_0$ contour which is similar to the correct contour, and in this particular case the moving average with $M=3$ seems to be the best choice.
 
-In a real scenario the available input to the $f_0$ transform is the transformed $\mathbf{\hat{X}}_{cc}$ vectors. 
+In a real scenario the available input to the $f_0$ transform is the transformed $\mathbf{\tilde{Y}}_{cc}$ vectors. 
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{$f_0$ transformation error with transformed cepstral vector as input for 10 sentences.}
@@ -67,7 +67,7 @@ This introduces another source of error and the transformation precision is degr
 
 The modified moving average is a moving average filter over three independent transformation of one $f_0(t)$. But is not certain that it is transformations of the same $f_0(t)$ since the value from the previous transformation $f_{0,t-1(n+1)}$ is the $f_0$ that should be the next after the current $f_{0,t}(n)$. When the transformation input are independent transformed cepstral vectors it is not given that consecutive input vectors would appear as consecutive in a real speech segment of the target speaker, hence the three $f_0$ values in the average operation might correspond to quite different pitch periods, unless the cepstral transformation is flawless.
 
-Since there is a correlation between the source cepstrum and the target cepstrum as well as the target cepstrum and the target fundamental frequency, a transformation of target $f_0$ with source cepstrum as input is worthy alternative. A comparison of transformation with source cepstrum $\mathbf{x}_{cc}$ and transformed cepstrum $\mathbf{\hat{x}}_{cc}$ as input is shown in Table~\ref{tab:f0_source_transform}
+Since there is a correlation between the source cepstrum and the target cepstrum as well as the target cepstrum and the target fundamental frequency, a transformation of target $f_0$ with source cepstrum as input is a worthy alternative. A comparison of transformation with source cepstrum $\mathbf{x}_{cc}$ and transformed cepstrum $\mathbf{\tilde{y}}_{cc}$ as input is shown in Table~\ref{tab:f0_source_transform}
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{Fundamental frequency transform with source cepstrum as input.}
@@ -100,14 +100,14 @@ To relax the computational complexity, the fundamental frequency can be transfor
 \end{table}
 Table~\ref{tab:f0_joint_transform} shows that the joint transformation decreases the standard deviation, but increases the mean error. 
 
-Although the transformations presented yields a nearly perfect average fundamental frequency, the prosody in a transformed sentence are not necessary correct. It could, however, be improved by certain ad-hoc tricks. The transformation in hand is clearly not context dependent. If the context was known the $f_0$ contour could be scaled, with \eg a parabola for a typical statement, to enhance the performance. Without context information this is impossible since the prosody in a statement is clearly different than in a question. The source $f_0$ could be used in the transformation to introduce some context awareness. 
+Although the transformations presented yields a nearly perfect average fundamental frequency, the prosody in a transformed sentence are not necessary correct. It could, however, be improved by certain ad-hoc adjustments. The transformation in hand is clearly not context dependent. If the context was known the $f_0$ contour could be scaled, with \eg a parabola for a typical statement, to enhance the performance. Without context information this is impossible since the prosody in a statement is clearly different than in a question. The source $f_0$ could be used in the transformation to introduce some context awareness. 
 
-As mentioned above, the mean error could be dealt with by a scaling which means that the joint transformation with source cepstrum as input with modified moving average smoothing yields the best transformation with the GMM and test sentences in question.
+As mentioned above, the mean error could be dealt with by a scaling which means that the joint transformation with source cepstrum as input with modified moving average smoothing, yields the best transformation with the GMM and test sentences in question.
 % section Fundamental Frequency Transformation (end)
 
 \section{Frequency Spectrum Transformation} % (fold)
 \label{sec:frequency_transformation}
-The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training set as the $f_0$ transformation. Four different setups were tested and the average results of the Itakura distance \eqref{eq:itakura_distance}, the $L_2$ metric \eqref{eq:l2_metric} and the cepstral distance \eqref{eq:cepstral_distance} of 10 sentences are shown in Table~\ref{tab:absolute_freq_results}. The distance of the source and target feature vectors before transformation are; itakura = 0.6053, $L_2$ = 4.4985 and CD = 0.4483. An ideal transformation would yield 0 for all metrics.
+The frequency transformation was done in the cepstrum domain. A 128 mixture GMM with diagonal covariance matrices was trained with the same training senteces as the $f_0$ transformation. Four different setups were tested and the average results of the Itakura distance \eqref{eq:itakura_distance}, the $L_2$ metric \eqref{eq:l2_metric} and the cepstral distance \eqref{eq:cepstral_distance} of 10 sentences are shown in Table~\ref{tab:absolute_freq_results}. The distances of the source and target feature vectors before transformation are; itakura = 0.6053, $L_2$ = 4.4985 and CD = 0.4483. An ideal transformation would yield 0 for all metrics.
 \begin{table}[htbp]
 	\begin{center}
 		\topcaption{Absolute error in frequency transformation.}
@@ -116,10 +116,10 @@ The frequency transformation was done in the cepstrum domain. A 128 mixture GMM 
 			\toprule
 			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{Itakura}} & \multicolumn{1}{c}{\emph{$L_2$}} & \multicolumn{1}{c}{\emph{CD}}\\
 			\midrule
-			Normal &  0.4565 & 3.6852 & 0.2939 \\
-			Pre-emphasis & 0.5162 & 3.9512 & 0.3203 \\
-			$c_0$ excluded & 0.5111 & 3.9790 & 0.3361 \\
-			Pre-emph, $c_0$ excluded & 0.6016 & 4.3725 & 0.3447 \\
+			Normal &  0.4479 & 3.5603 & 0.2629 \\
+			Pre-emphasis & 0.5235 & 3.8603 & 0.2947 \\
+			$c_0$ excluded & 0.5199 & 3.9065 & 0.3140 \\
+			Pre-emph and $c_0$ excluded & 0.6066 & 4.2411 & 0.3241 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
@@ -152,10 +152,10 @@ A different point of view is the relative improvement to the starting point. The
 			\toprule
 			\multicolumn{1}{c}{\emph{Setup}} & \multicolumn{1}{c}{\emph{N-Itakura}} & \multicolumn{1}{c}{\emph{N-L$_2$}} & \multicolumn{1}{c}{\emph{NCD}}\\
 			\midrule
-			Normal & 0.7542 & 0.8174 & 0.6553 \\
-			Pre-emphasis &  0.6514 & 0.7545 & 0.5780 \\
-			$c_0$ excluded & 0.8444 & 0.8826 & 0.7495 \\
-			Pre-emph and $c_0$ excluded & 0.7591 & 0.8350 & 0.6219 \\
+			Normal & 0.7385 & 0.2307 & 0.64354 \\
+			Pre-emphasis &  0.6921 & 0.2206 & 0.6131 \\
+			$c_0$ excluded & 0.8573 & 0.2507 & 0.7687 \\
+			Pre-emph and $c_0$ excluded & 0.8020 & 0.2382 & 0.6743 \\
 			\bottomrule			
 		\end{tabular}		
 	\end{center}	
@@ -216,9 +216,9 @@ Table~\ref{tab:spectrum_joint_transform} shows a comparison on the spectrum tran
 		\end{tabular}		
 	\end{center}	
 \end{table}
-The joint transform did not have a dramatic effect on the $f_0$ transform, in fact it had a lower standard deviation than the standalone transform. But the joint transformation of the spectrum is even worse than no transformation at all. Of course the joint transformation could be used only for the pitch and spectrum could be transform in a separate transform, but since there was nothing to gain in the $f_0$ transform either there is not point in combining these two transformation in one.
+The joint transform did not have a dramatic effect on the $f_0$ transform, in fact it had a lower standard deviation than the standalone transform. But the joint transformation of the spectrum is even worse than no transformation at all. The joint transformation should therefor only be used to transform the pitch with the frequency transform done separately.
 
-Table~\ref{tab:absolute_freq_results} and Figure~\ref{fig:hist_lp} shows that the transformation is not perfect. It was off course predicted to be either, but it could be better by using more mixtures in the GMM. By using more mixtures in the GMM would also require more training vectors for the fitting algorithm (EM) to converge. This is not always practically possible, but is would increase the performance as shown in the research of Y. Stylianou \etal \cite{stylianou98}. 100 training vectors, as used in this implementation, is already a lot to ask of a ``source speaker'' in many cases. E. Helander \etal \cite{helander08} proposed a different approach with a very small training set. By using line spectral frequencies (LSF) and exploiting their intra-frame correlations, a separate GMM could be created for each source speaker LSF element and the target LSF elements which best correlate with the current source LSF element. Yielding one full covariance GMM for each LSF element with vectors of only a few elements and only a few mixtures required for good transformation results.
+Table~\ref{tab:absolute_freq_results} and Figure~\ref{fig:hist_lp} shows that the transformation is not perfect. It was off course not foreseen to be either, but it could be better by using more mixtures in the GMM. By using more mixtures in the GMM would also require more training vectors for the fitting algorithm (EM) to converge. This is not always practically possible, but is would increase the performance as shown in the research of Y. Stylianou \etal \cite{stylianou98}. 100 training vectors, as used in this implementation, is already a lot to ask of a ``source speaker'' in many cases. E. Helander \etal \cite{helander08} proposed a different approach with a very small training set. By using line spectral frequencies (LSF) and exploiting their intra-frame correlations, a separate GMM could be created for each source speaker LSF element and the target LSF elements which best correlate with the current source LSF element. Yielding one full covariance GMM for each LSF element with vectors of only a few elements and only a few mixtures required for good transformation results.
 % section Frequency Transformation (end)
 
 \section{Listening Test} % (fold)

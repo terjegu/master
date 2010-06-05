@@ -1,7 +1,7 @@
 \chapter{Theory} % (fold)
 \label{cha:theory}
 
-The basic idea of the voice transformation is to make a linear prediction, LP, analysis of the signal and extract the estimate from the real signal to yield a source-filter separation, where the excitation represents the source and the LP coefficients represent the filter. The frequency spectra of the voice can be transformed by altering the filter coefficients to match the new voice, and the pitch can be transformed by performing the PSOLA technique on the excitation signal. The transformed excitation and LP coefficients are used in the inverse filter to synthesis the transformed voice, as depicted in Figure~\ref{fig:transformation_system}.
+The basic idea of the voice transformation is to make a linear prediction (LP) analysis of the signal and perform an inverse filtering to yield a source-filter separation, where the excitation represents the source and the LP coefficients represent the filter. The frequency spectra of the voice can be transformed by altering the filter coefficients to match the new voice, and the pitch can be transformed by performing the PSOLA technique on the excitation signal. The transformed excitation and LP coefficients are used in the inverse filter to synthesis the transformed voice, as depicted in Figure~\ref{fig:transformation_system}.
 \begin{figure}[htbp]
   \begin{center}
   \begin{tabular}[h]{c}
@@ -9,13 +9,13 @@ The basic idea of the voice transformation is to make a linear prediction, LP, a
 	\mathbf{x} \ar[rr] & \ar[d]\ar[r] &*+<5mm>[F-,]{1-A(z)}  \ar[r]^<(0.3){\mathbf{e}} &*+<5mm>[F-,]{\txt{PT}} \ar[r]^<(0.3){\tilde{\mathbf{e}}}  &*+<5mm>[F-,]{\frac{1}{1-\tilde{A}(z)}} \ar[r] & \tilde{\mathbf{y}} \\  % end line 1
 	&*+<5mm>[F-,]{\txt{LPC}} \ar[rr]^<(0.25){A(z)} & \ar[u]&*+<5mm>[F-,]{\txt{FT}}\ar `[ru]^<(0.5){\tilde{A}(z)} [ur]&  &}
   \end{tabular}
-  \caption{Voice transformation system.}
+  \caption{Voice transformation system with source-filter separation where pitch transform (PT) is performed on the excitation and filter transform (FT) modifies the filter parameters.}
   \label{fig:transformation_system}
   \end{center}
 \end{figure}
 \abbrev{FT}{Filter Transform} \abbrev{PT}{Pitch Transform}
 
-The challenge in this procedure is to find global context-independent transformation functions explained in Section~\ref{sec:transformation_function}. The transformation function is trained with known corresponding source and target vectors to output the correct target vector with a new source vector as input. In the training process the source and target speaker signals are time-aligned with dynamic time warping, Section~\ref{sec:dynamic_time_warping}. The corresponding vectors are represented as Gaussian mixture models (GMM), Section~\ref{sec:gaussian_mixture_model}.
+The challenge in this procedure is to find global context-independent transformation functions explained in Section~\ref{sec:transformation_function}. The transformation function is trained with known corresponding source and target vectors to output the correct target vector with a new source vector as input. In the training process the source and target speaker signals are time-aligned with dynamic time warping, Section~\ref{sec:dynamic_time_warping}. The corresponding vectors are represented as a Gaussian mixture model (GMM), Section~\ref{sec:gaussian_mixture_model}.
 
 
 % \begin{figure}[htbp]
@@ -33,13 +33,14 @@ The challenge in this procedure is to find global context-independent transforma
 
 \section{Signal Representation} % (fold)
 \label{the:signal_representation}
-Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values and a whole sentence would need approximately 40 000 values. Linear predictive coding, Section~\ref{sub:linear_predictive_coding}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the pole-coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:transformation_system}.
+Representing a signal in the time domain requires a huge amount of storage, \eg representing 10 ms with a sampling frequency of 8 kHz yields 80 values, and a 5 seconds sentence would need approximately 40 000 values. Linear predictive coding, Section~\ref{sub:linear_predictive_coding}, is a fast and simple signal representation which only requires \eg 10 values to represent a signal segment of 10 ms, as opposed to 80. The LPC coefficients, $A(z)$, are the coefficients in an IIR filter which approximates the signal. By applying an inverse filtering of such a filter we get a source-filter separation where the source is the prediction error, as shown in Figure~\ref{fig:transformation_system}.
 
-LPC\abbrev{LPC}{Linear Prediction Coding} has a number of equivalent representations good properties for different tasks. The representations used in the voice transformation are presented shortly in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}.
+LPC\abbrev{LPC}{Linear Prediction Coding} has a number of equivalent representations with different properties used in different tasks. The representations used in the filter transformation are presented in Section~\ref{sub:cepstrum} and \ref{sub:reflection_coefficients}. Fundamental frequency is used in the pitch transformation, explained in Section~\ref{sub:pitch_detection}.
+
 
 \subsection{Linear Predictive Coding} % (fold)
 \label{sub:linear_predictive_coding}
-Linear predictive coding, LPC, was first applied to speech signals by Bishnu Atal \etal in 1968 \cite{atal68}. LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its last $p$ samples \cite{digsig}
+Linear predictive coding, LPC, was first applied to speech signals by B. Atal \etal in 1968 \cite{atal68}. LPC approximates the signal as a $p$-th order all-pole filter by predicting the current sample as a linear combination of its previous $p$ samples \cite{digsig}
 \begin{equation}
 	\tilde{x}(n) = \sum_{k=1}^{p}\alpha_k x(n-k)
 \end{equation}
@@ -51,7 +52,7 @@ The prediction error by this representation is
 	\end{split}
 \end{equation}
 
-The prediction coefficients $a_k$ can be estimated by the minimum mean square error technique, which estimates the coefficients that minimise the total prediction error $E$.
+The prediction coefficients $\alpha_k$ can be estimated by the minimum mean squared error technique, which estimates the coefficients that minimise the total prediction error $E$.
 \begin{equation}
 	\label{eq:prediction_error}
 	\begin{split}
@@ -59,9 +60,9 @@ The prediction coefficients $a_k$ can be estimated by the minimum mean square er
 		= & \sum_{n}\pbrackets{x(n)-\sum_{k=1}^{p}\alpha_k x(n-k)}^2
 	\end{split}
 \end{equation}
-The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $a_i$, and equating to 0. By setting $\partial E/\partial \alpha_i = 0$ we obtain
+The coefficients can be obtained by taking the derivative of \eqref{eq:prediction_error} with respect to $\alpha_i$, and equating to 0. By setting $\partial E/\partial \alpha_i = 0$ we obtain
 \begin{equation}
-	\sum_{n}x(n-i)x(n) = \sum_{k}\alpha \sum_{n}x(n-i)x(n-k), \qquad  1\leq i\leq p 
+	\sum_{n}x(n-i)x(n) = \sum_{k}\alpha_k \sum_{n}x(n-i)x(n-k), \qquad  1\leq i\leq p 
 	\label{eq:lpc_part1}
 \end{equation}	
 By introducing autocorrelation defined as
@@ -100,14 +101,14 @@ Which yields a set of $p$ linear equations with $p$ unknown parameters, which ea
 
 \subsection{Cepstrum} % (fold)
 \label{sub:cepstrum}
-The cepstrum was first introduced by Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstral coefficients (CC \abbrev{CC}{Cepstral Coefficients}) have the property of low correlation between different frames of coefficients.
+The cepstrum was first introduced by B. P. Bogert \etal \cite{bogert63} in 1963. The cepstrum of a signal is a homomorphic transformation to the \emph{quefrency} domain \cite{taletek}. Cepstral coefficients (CC\abbrev{CC}{Cepstral Coefficients}) have the property of low intra-frame correlation.
 
 The complex cepstrum is defined as the inverse Fourier transform of the log Fourier transform
 \begin{equation}
 	c(n) = \frac{1}{2\pi}\int_{-\pi}^{\pi} \ln X(e^{j\omega}) e^{j\omega n}d\omega
 	\label{eq:complex_cepstrum}
 \end{equation}
-However, the complex cepstrum $c(n)$ parameters can be converted from LPC coefficients $\alpha_n$ by the following recursion:
+However, the complex cepstrum $c(n)$ parameters can be converted from LP coefficients $\alpha_n$ by the following recursion:
 \begin{equation}
 	c(n) = \begin{cases}
 		\alpha_n+{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k}, & 0<n\leq p\\
@@ -115,26 +116,26 @@ However, the complex cepstrum $c(n)$ parameters can be converted from LPC coeffi
 	\end{cases}
 	\label{eq:ar2cc}
 \end{equation}
-where $p$ is the number of LPC coefficients. The cepstrum representation is defined with infinity number of coefficients, anything less will be an approximation. The usual choice of accuracy is in the vicinity of 20 coefficients.
+where $p$ is the number of LP coefficients. The cepstrum representation is defined with infinite number of coefficients, anything less would be an approximation. The usual choice of accuracy is in the vicinity of 20 coefficients.
 
 The cepstrum parameters can be converted back from LPC by rearranging the equation,
 \begin{equation}
-	c_n-{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c(k) \alpha_{n-k} = \begin{cases}
+	c_n-{\displaystyle\sum_{k=1}^{n-1} \pbrackets{\frac{k}{n}}} c_k \alpha_{n-k} = \begin{cases}
 		\alpha_n, &\quad 0< n \leq p\\
 		0, &\quad n > p
 	\end{cases}
 	\label{eq:cc2ar}
 \end{equation}
-However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, minimum-phase, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by an transformation function, the resulting LPC parameters might be unstable and the recursion will not yield 0 for $n>p$.  
+However, the recursion assumes that the cepstrum parameters represents an all-pole model with poles inside the unit circle, minimum-phase, which might not be the case. Which means that if the cepstrum parameters have been altered, for instance by a transformation function, the resulting LP coefficients might be unstable and the recursion will not yield 0 for $n>p$.  
 
-Another approach to map CC to LPC is to use equation \eqref{eq:complex_cepstrum}. By taking the Fourier transform of the complex cepstrum and the inverse logarithm, we get the Fourier transform of the signal. The magnitude of the Fourier transform yields the power spectrum of the signal. From the power spectrum we can get the autocorrelation of the signal by applying the inverse Fourier transform.
+Another approach to map CC to LP is to use equation \eqref{eq:complex_cepstrum}. By taking the Fourier transform of the complex cepstrum and the inverse logarithm, we get the Fourier transform of the signal. The magnitude of the Fourier transform yields the power spectrum of the signal. From the power spectrum we can get the autocorrelation $R_{xx}$ of the signal by applying the inverse Fourier transform.
 \begin{figure}[htbp]
   \centering
   \begin{tabular}[h]{c}
 	\xymatrix{ 
-  		c(n) \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\exp(\cdot)}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2} \ar[r] &*+<5mm>[F]{\text{IDFT}} \ar[r] & R_{xx}(n)}    
+  		c(n) \ar[r] &*+<5mm>[F]{\text{DFT}}\ar[r] &*+<5mm>[F]{\exp(\cdot)}\ar[r] &*+<5mm>[F]{\abs{\cdot}^2} \ar[r] &*+<5mm>[F]{\text{IDFT}} \ar[r] & \hat{R}_{xx}(n)}    
   \end{tabular}
-  \caption{Complex cepstrum to autocorrelation}
+  \caption{Complex cepstrum to autocorrelation.}
   \label{fig:cc2ar}
 \end{figure}
 From the autocorrelation representation we have the same situation as in \eqref{eq:yule_walker}, which means that we can get the LPC parameters by the Levinson-Durbin algorithm \cite{cybenko80}. The number of DFT coefficients can be chosen arbitrary to get the desired resolution.
@@ -142,7 +143,7 @@ From the autocorrelation representation we have the same situation as in \eqref{
 
 \subsection{Reflection Coefficients} % (fold)
 \label{sub:reflection_coefficients}
-Reflection coefficients (RC\abbrev{RC}{Reflection Coefficients}) is another equivalent representation of LPC which is easily checked for stability. The reflection coefficients has a dynamic range of $\cbrackets{-1,1}$ if they are stable. 
+Reflection coefficients (RC\abbrev{RC}{Reflection Coefficients}) is another equivalent representation of LPC which could easily be checked for stability. The reflection coefficients has a dynamic range of $\sbrackets{-1,1}$ if they are stable. 
 
 The reflection coefficients $k$ can be obtained from the linear prediction coefficients $\alpha$ by the following recursion
 \begin{equation}
@@ -167,10 +168,10 @@ where $\alpha_i=\alpha_i^p$.
 
 \subsection{Pitch Detection} % (fold)
 \label{sub:pitch_detection}
-Pitch is somewhat the perceptual ``tone'' of the voice and can not directly be measured from the signal. However, the pitch period can be simplified to label the smallest true period of the signal. The inverse of the smallest period of a small analysis interval yields the fundamental frequency $F_0(t)$. If there is no distinct period in the analysis window, it is detected as unvoiced.
+Pitch is the perceptual ``tone'' of the voice and can not directly be measured from the signal. However, the pitch period can be simplified to label the smallest true period of the signal. The inverse of the smallest period of a small analysis interval yields the fundamental frequency $f_0(t)$. If there is no distinct period in the analysis window, it is detected as unvoiced.
 Since unvoiced excitation signal is regarded as white noise, there is no point in transforming the unvoiced parts. Used in a global transform together with voiced parts would only degrade the transformation of voiced segments.
 
-There are many methods of prediction the pitch and detecting voicing in a speech signal, in fact, it is written many books on the subject \cite{kleijn95}. They all, however, use some correlation algorithm, with some pre and post processing, to find the smallest distinctive period in the signal.
+There are many methods of prediction the pitch and detecting voicing in a speech signal, in fact, it is written books on the subject \cite{kleijn95}. They all, however, use some correlation algorithm, with some pre and post processing, to find the smallest distinctive period in the signal.
 
 D. Talkin suggested a method using cross-correlation, in contrast to autocorrelation as used in many other techniques, called robust algorithm for pitch tracking (RAPT\abbrev{RAPT}{Robust Algorithm for Pitch Tracking}) \cite{talkin95}. The cross-correlation in this matter is much the same as autocorrelation, but considers a correlation window of more than just the current analysis frame. Let $x$ be the a windowed signal segment, the cross-correlation $\chi$ of $x$ is defined as
 \begin{equation}
@@ -178,9 +179,9 @@ D. Talkin suggested a method using cross-correlation, in contrast to autocorrela
 \end{equation}
 where $i$ is the frame index for $M$ frames, $z$ is the number of sample to advance for each frame, $k$ is the lag index and $n$ is the number of samples in the correlation window.
 
-The RAPT algorithm uses two versions of the speech signal, one at the original sample rate and one with significantly reduced sample rate. The reduced sample rate version is passed into a normalised cross-correlation function (NCCF\abbrev{NCCF}{Normalised Cross-Correlation Function}) and the local maximum correlation distance is recorded. The results of the first iteration is used as a initialisation of the same procedure with the original signal, where the local maxima of the NCCF are restricted to be in the vicinity of the results of the first iteration. The second iteration yields candidate $f_0$ values and are used in a dynamic programming algorithm which utilises certain properties of the NCCF and voiced signal segments. Such properties are \begin{inparaenum}[\itshape a\upshape)] \item if there are more than one local maximum, the shortest period is the correct choice, \item $f_0$ is slowly varying over time so local maxima in adjacent frames should be located at comparable lags, \item if the change in adjacent frames are significant it should be a doubling or a halving of lags, \item a change in voicing in adjacent frames will occur at low frequencies, \item the short-time spectra of voiced and unvoiced frames are significantly different and \item amplitude tend to increase at the onset of voicing and to decrease at offset \cite{talkin95}.\end{inparaenum}
+The RAPT algorithm uses two versions of the speech signal, one at the original sample rate and one with significantly reduced sample rate. The reduced sample rate version is passed into a normalised cross-correlation function (NCCF\abbrev{NCCF}{Normalised Cross-Correlation Function}) and the local maximum correlation distance is recorded. The results of the first iteration is used as a initialisation of the same procedure with the original signal, where the local maxima of the NCCF are restricted to be in the vicinity of the results of the first iteration. The second iteration yields candidate $f_0$ values and are used in a dynamic programming algorithm which utilises certain properties of the NCCF and voiced speech. Such properties are \begin{inparaenum}[\itshape a\upshape)] \item if there are more than one local maximum, the shortest period is the correct choice, \item $f_0$ is slowly varying over time so local maxima in adjacent frames should be located at comparable lags, \item if the change in adjacent frames are significant it should be a doubling or a halving of lags, \item a change in voicing in adjacent frames will occur at low frequencies, \item the short-time spectra of voiced and unvoiced frames are significantly different and \item amplitude tend to increase at the onset of voicing and to decrease at offset \cite{talkin95}.\end{inparaenum}
 
-To find the pitch peak of a analysis frame is simple to search for the maximum value in the vicinity of where its supposed to be according to the fundamental frequency results.
+To find the pitch peak of a analysis frame is simply to search for the maximum value in the vicinity of where its supposed to be according to the fundamental frequency results.
 
  % Simple inverse filter tracking (SIFT\abbrev{SIFT}{simple inverse filter tracking}) is a method for pitch estimation, proposed by John D. Markel in 1972 \cite{markel72}, is a simple method which only utilises concepts already introduced. 
 
@@ -206,7 +207,7 @@ To find the pitch peak of a analysis frame is simple to search for the maximum v
 
 \section{Gaussian Mixture Model} % (fold)
 \label{sec:gaussian_mixture_model}
-The GMM is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech sound, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \cite{gray84}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
+The GMM is a classical parametric model used in many pattern recognition techniques \cite{stylianou98}. Because of the wide variety of speech realisations, representing all of them would require enormous complexity of both training data and the transformation function. A probabilistic Gaussian mixture model is a simpler and faster approach. GMM classifies a set of vectors into a smaller number of classes. Instead of representing a class by its mean value, as VQ \cite{gray84}, GMM represents a class as a Gaussian distribution where the distributions can overlap. Vector quantization represents a vector by the mean of the closest class, called hard decision, which could result in large errors. GMM on the other hand uses a soft decision by representing a vector as a sum of weighted Gaussian distributions. A GMM can model a large set of vectors with only a few parameters which there are well defined methods of estimating, \eg estimation maximisation (EM) \cite{taletek}.
 
 The GMM assumes that the probability distribution of the observed parameters takes the following parametric form
 \newcommand{\nnn}{\mathcal N}
@@ -232,7 +233,7 @@ The conditional probability that a given observation vector $\mathbf{x}$ belongs
 	P(C_i\vert \mathbf{x}) = \frac{\alpha_i \nnn(\mathbf{x}; \boldsymbol{\mu}_i, \mathbf{\Sigma}_i)}{\sum_{j=1}^{m}\alpha_j \nnn(\mathbf{x}; \boldsymbol{\mu}_j, \mathbf{\Sigma}_j)}
 \end{equation}
 
-The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ can be estimated with the expectation maximisation (EM\abbrev{EM}{Expectation Maximisation}) algorithm. The EM algorithm is an iterative algorithm for unsupervised learning in which component information is unavailable. The EM algorithm tries to find the parameters in the GMM that gives the maximum likelihood of the observed data $\mathbf{X}$. The initial values for the parameters of the GMM can be computed from the VQ representation of the source vectors. The next step is to find the expectation of the log-likelihood of the latent data given the current estimate of the parameters. A new estimate of the parameters is found by maximising the expected log-likelihood and the process is repeated until convergence \cite{taletek}.
+The parameters $\boldsymbol{\alpha}, \boldsymbol{\mu}$ and $ \mathbf{\Sigma}$ can be estimated with the expectation maximisation (EM\abbrev{EM}{Expectation Maximisation}) algorithm. The EM algorithm is an iterative algorithm for unsupervised learning in which component information is unavailable. The EM algorithm tries to find the parameters in the GMM that gives the maximum likelihood of the observed data $\mathbf{X}$. The initial values for the parameters of the GMM can be computed from the VQ representation of the vectors by the \emph{k-means} algorithm \cite{linde80}. The next step is to find the expectation of the log-likelihood of the latent data given the current estimate of the parameters. A new estimate of the parameters is found by maximising the expected log-likelihood and the process is repeated until convergence \cite{taletek}.
 
 % section Gaussian Mixture Model (end)
 
@@ -336,7 +337,7 @@ The possible paths are shown in Figure~\ref{fig:dtw_shortest_path}.
 The weights $\alpha,\beta$ and $\gamma$, called local constraints, are optional and could have a significant effect on the outcome. For instance, the $\beta$ weights can be assigned a larger value to avoid multiple skipping or repetition of frames. Global constraints can be applied in addition to the local constraints which limits the resulting path by borders to guarantee a maximum modification of the signals.
 
 \begin{remark}
-There is no option for the path $\dmin(i-2,j-1)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors can be used to represent the mapping. This is important because in source speaker is used as input in the transformation function. For the same reason, the global constraints can not allow open ends for the source vector since this will in practise mean stripping off the edges of the signal.
+There is no option for the path $\dmin(i-2,j-1)$ to $\dmin(i,j)$ to ensure that all segments of the source speaker are used. Moreover, if a source vector is mapped to two or more target vectors, only one of the target vectors, or the mean of the target vectors, can be used to represent the mapping. This is important to achieve a one-to-one mapping of the source vectors as they are used as input to the transformation function. For the same reason, the global constraints can not allow open ends for the source vector since this will in practise mean stripping off the edges of the signal.
 \end{remark}
 
 The indices in the resulting shortest path are used to duplicate and/or delete frames in the target signal to get a time-aligned version of the target matrix which is the best match to the LP matrix of the source speaker.
@@ -361,7 +362,7 @@ Given a set of time-aligned LP vectors of the source and target speaker, $\mathb
 we want to define a transformation function which yields the most likely target vector given a new source vector
 \newcommand{\fff}{\mathcal F}
 \begin{equation}
-	\fff(\mathbf{x}) = E[\mathbf{y}\vert \mathbf{x}]
+	\fff(\mathbf{x}) = E[\mathbf{y}\vert \mathbf{x}] = \mathbf{\tilde{y}}
 \end{equation}
 If we assume that the source and target vectors are jointly Gaussian, the likelihood of $\mathbf{y}$ given $\mathbf{x}$ for a single component GMM can be expressed as \cite{kay93}
 \begin{equation}
@@ -376,9 +377,9 @@ and $\mathbf{\Sigma}$ is the cross-covariance matrix
 	\mathbf{\Sigma}^{yx} = E \sbrackets{(\mathbf{y}-\boldsymbol{\mu}^y)(\mathbf{x}-\boldsymbol{\mu}^x)^T}
 \end{equation}
 
-Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function
+Stylianou \etal \cite{stylianou95} suggested using this formula for a multicomponent GMM yielding the transformation function.
 \begin{definition}
-	Given a Gaussian mixture model trained with a joint vector of time aligned feature vectors $\mathbf{z} = \sbrackets{\mathbf{x},\mathbf{y}}$ and a new feature vector $\mathbf{x}$ not contained in the training set of the GMM. The most likely correspond feature vector $\mathbf{y}$ can be obtained by
+	Given a Gaussian mixture model trained with a joint vector of time aligned feature vectors $\mathbf{z} = \sbrackets{\mathbf{x},\mathbf{y}}$ and a new feature vector $\mathbf{x}$ not contained in the training set of the GMM. The most likely corresponding feature vector $\mathbf{y}$ is
 	\begin{equation}
 		\label{eq:transformation_function}
 		\begin{split}
@@ -411,7 +412,7 @@ If we train the GMM with $\mathbf{Z}=\mathbf{X}$, the mean $\boldsymbol{\mu}^x$ 
 Equation \eqref{eq:transformation_function} with diagonal covariance matrices will become
 \begin{equation}
 	\label{eq:diagonal_transformation}
-	\mathcal{F}(x_t^{(k)}) = \sum_{i=1}^{m} P(C_i\vert \mathbf{x}_t) [\mu_i^{y^{(k)}}+\sigma_i^{yx^{(k)}}  (x_t^{(k)}-\mu_i^{x^{(k)}})/\sigma_i^{xx^{(k)}}]
+	\mathcal{F}(x^{(k)}) = \sum_{i=1}^{m} P(C_i\vert \mathbf{x}) [\mu_i^{y^{(k)}}+\sigma_i^{yx^{(k)}}  (x^{(k)}-\mu_i^{x^{(k)}})/\sigma_i^{xx^{(k)}}]
 \end{equation}
 where $k=1,\dots,p$ and denotes one cepstrum coefficient. \eqref{eq:diagonal_transformation} can be written as a single matrix equation,
 \begin{equation}
@@ -526,7 +527,7 @@ This least-square problem can be solved by the normal equations \cite{strang06}
 
 \section{Synthesis} % (fold)
 \label{sec:synthesis}
-Given a transformed set of pitch and frequency feature parameters, we would like to synthesise the new transformed voice. As depicted in Figure~\ref{fig:transformation_system} the excitation from the inverse LP filtering is passed through the PSOLA algorithm which changes the pitch pulse distances to the transformed markings. The transformed excitation is agin passed through a LP synthesise filter with the transformed filter coefficients.
+Given a transformed set of pitch and frequency feature parameters, we would like to synthesise the new transformed voice. As depicted in Figure~\ref{fig:transformation_system} the excitation from the inverse LP filtering is passed through the PSOLA algorithm which changes the pitch pulse distances to the transformed markings. The transformed excitation is then passed through a LP synthesise filter with the transformed filter coefficients.
 
 \subsection{PSOLA} % (fold)
 \label{sub:psola}
@@ -560,7 +561,7 @@ To increase the performance of the transformation certain pre-processing techniq
 
 \subsection{Endpoint Detection} % (fold)
 \label{sub:endpoint_detection}
-To exclude non-informative information, like silence in the beginning and end of a sentence, could enhance the transformation because it excludes unwanted training data. If the signal to noise ratio is high it is a trivial task. However, if there is some background noise it is not that easy to detect the boundaries of the speech utterance. The basic approach is the derive the energy of the signal and choose a boundary for how much energy there is in the utterance and clip the signal where the energy crosses this boundary. But if there is a peak in the noise level when the speaker is silent, the peak could be recognised as the start of a sentence.
+Excluding non-informative information, like silence in the beginning and end of a sentence, could enhance the transformation because it excludes unwanted training data. If the signal to noise ratio is high it is a trivial task. However, if there is some background noise it is not that easy to detect the boundaries of the speech utterance. The basic approach is the derive the energy of the signal and choose a boundary for how much energy there is in the utterance and clip the signal where the energy crosses this boundary. But if there is a peak in the noise level when the speaker is silent, the peak could be recognised as the start of a sentence.
 
 \begin{figure}[htbp]
 	\begin{center}
@@ -571,7 +572,7 @@ To exclude non-informative information, like silence in the beginning and end of
 \end{figure}
 \TODO{replace figure?}
 
-A more robust method of endpoint detection proposed by \cite{rabiner75} is to locate where we know for with a higher probability where this an utterance and backtrace from this point to the silence boundary, illustrated in Figure~\ref{fig:endpoint_detection}. Another technique for avoiding peak-noise error is the use of short-time energy. Instead of calculating the energy in each sample separately we can introduce a memory component to smooth out the energy contour.
+A more robust method of endpoint detection proposed by \cite{rabiner75} is to locate where we know, with a high probability, there is an utterance and backtrace from this point to the silence boundary, illustrated in Figure~\ref{fig:endpoint_detection}. A supplementary technique for avoiding peak-noise error is the use of short-time energy. Instead of calculating the energy in each sample separately we can introduce a memory component to smooth out the energy contour.
 \begin{equation}
 	E(n)=\sum_{j=0}^{n}\alpha^j x^2(n-j)
 	\label{eq:basic_ste}
@@ -594,7 +595,7 @@ By estimating the energy of the signal by \eqref{eq:short_time_energy} the endpo
 
 \subsection{Pre-emphasis} % (fold)
 \label{sub:pre_emphasis}
-Some implementations of frequency transformation lacks a good transformation of high frequencies \cite{turk06}. A temporarily increase of the energy in high frequencies during the transformation operations could cope with this problem. This can be achieved by passing the speech signals through a pre-emphasis filter in the pre-processing and do the inverse operation before synthesis. The pre-emphasis filter is a simple one state IIR filter
+Some implementations of frequency transformation lacks a good transformation of high frequencies \cite{turk06}. A temporary increase of the energy in high frequencies during the transformation operations could cope with this problem. This can be achieved by passing the speech signals through a pre-emphasis filter in the pre-processing and do the inverse operation before synthesis. The pre-emphasis filter is a simple one state IIR filter
 \begin{equation}
 	\label{eq:pre_emphasis}
 	H(z) = \frac{1}{1-\alpha z^{-1}}
@@ -617,27 +618,27 @@ However, wether it provides an increase in the overall quality of the frequency 
 
 \section{Objective Result Metrics} % (fold)
 \label{sec:objective_metrics}
-The best quality metric of a voice transformation is the subjective impression from a listening test. However, it is dependant of the listeners and can be time consuming. Objective metrics could be useful too in the development phase. They are often easy to measure and gives a consequent result if used properly. 
+The best quality metric of a voice transformation is the subjective impression from a listening test. However, it is dependant of the listeners and it could be very time consuming. Objective metrics could therefor be useful in the development phase. They are often easy to measure and gives a consequent result if used properly. 
 
 \subsection{Frequency Metrics} % (fold)
 \label{sub:frequency_metrics}
 Itakura distance \eqref{eq:itakura_distance} is a distance metric to measure the difference between LP vectors. Cepstral distance is another metric useful in measuring the quality of the frequency transformation from the cepstral domain. 
 \begin{definition}
-	Let $\hat{\mathbf{c}}$ be a vector of transformed cepstral coefficients and $\mathbf{c}^t$ the vector of target coefficients. The cepstral distance between the two vectors is
+	Let $\tilde{\mathbf{c}}$ be a vector of transformed cepstral coefficients and $\mathbf{c}^t$ the vector of target coefficients. The cepstral distance between the two vectors is
 	\begin{equation}
 		\label{eq:cepstral_distance}
-		\epsilon(\hat{\mathbf{c}},\mathbf{c}^t) = \sum_{i=1}^{n-1}(\hat{c}_{i}-c_{i}^t)^2
+		\epsilon(\tilde{\mathbf{c}},\mathbf{c}^t) = \sum_{i=1}^{n-1}(\tilde{c}_{i}-c_{i}^t)^2
 	\end{equation}
-	where the energy coefficient $c_0$ is left out.
+	where the energy coefficient $c_0$ is not considered.
 	
 	The Normalised cepstral distance (NCD\abbrev{NCD}{Normalised Cepstral Distance}) of the transformed vector with source vector $\mathbf{c}^s$ is
 	\begin{equation}
 		\label{eq:ncd}
-		\epsilon(\hat{\mathbf{c}},\mathbf{c}^t,\mathbf{c}^s) = \frac{{\sum}_{i=1}^{n-1}(\hat{c}_{i}-c_{i}^t)^2}{\sum_{j=1}^{n-1}(c_{j}^s-c_{j}^t)^2}
+		\epsilon(\tilde{\mathbf{c}},\mathbf{c}^t,\mathbf{c}^s) = \frac{{\sum}_{i=1}^{n-1}(\tilde{c}_{i}-c_{i}^t)^2}{\sum_{j=1}^{n-1}(c_{j}^s-c_{j}^t)^2}
 	\end{equation}
-	Which measures the relative improvement of the transformation.
+	Which measures the relative improvement of the transformation \cite{najjary04}.
 	% \begin{equation}
-	% 	e(\hat{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\hat{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
+	% 	e(\tilde{c}^t,c^t) = \frac{\sum_{i=1}^{N}\sum_{j=2}^{13}(\tilde{c}_{ij}^t-c_{ij}^t)^2}{\sum_{i=1}^{N}\sum_{j=2}^{13}(c_{ij}^s-c_{ij}^t)^2}
 	% \end{equation}	
 \end{definition}
 
@@ -646,9 +647,9 @@ While NCD measures the improvement of the transform relative to untransformed so
 \begin{definition}
 	Given the power spectrum $S(\omega)$ of a signal
 \begin{equation}
-	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}a_i e^{-j\omega_i}}^2}
+	S(\omega) = \frac{\sigma^2}{\abs{1-\sum_{i}\alpha_i e^{-j\omega_i}}^2}
 \end{equation}
-let $\mathbf{a}$ and $\mathbf{b}$ be two signals, the log RMS distortion is
+let $\mathbf{a}$ and $\mathbf{b}$ be target and the transformed signals, respectively. The log RMS distortion is
 \begin{equation}
 	d_{rms}(\mathbf{a},\mathbf{b}) = \frac{1}{2\pi}\int_{-\pi}^{\pi}\left\lvert\ln \frac{S_a(\omega)}{S_b(\omega)}\right\rvert^2 d\omega
 \end{equation}
@@ -657,7 +658,7 @@ the $L_2$ metric is defined as \cite{gray76}
 	\label{eq:l2_metric}
 	L_2(\mathbf{a},\mathbf{b})  = 4.343 \sqrt{d_{rms}(\mathbf{a},\mathbf{b})} \quad [dB]
 \end{equation}
-The $L_2$ is a true metric in the sense that they satisfy the triangle inequality in addition to being symmetric and positive definite \cite{kreyszig89}.
+The $L_2$ metric is a true metric in the sense that is satisfy the triangle inequality in addition to being symmetric and positive definite \cite{kreyszig89}.
 \end{definition}
 
 \begin{remark}
@@ -670,7 +671,7 @@ The $L_2$ is a true metric in the sense that they satisfy the triangle inequalit
 The $L_2$ metric normalised with the source spectrum is
 \begin{equation}
 	\begin{split}
-	Nd_{rms}(\mathbf{a},\mathbf{b},\mathbf{c}) = & \frac{1}{2\pi}\int_{-\pi}^{\pi} \frac{\abs{\ln S_a(\omega)-\ln S_b(\omega)}^2}{\abs{\ln S_a(\omega)-\ln S_c(\omega)}^2} d\omega \\
+	Nd_{rms}(\mathbf{a},\mathbf{b},\mathbf{c}) = & \frac{\int \abs{\ln S_a(\omega)-\ln S_b(\omega)}^2 d\omega}{\int \abs{\ln S_a(\omega)-\ln S_c(\omega)}^2 d\omega}  \\
 	NL_2(\mathbf{a},\mathbf{b},\mathbf{c}) = & 4.343 \sqrt{Nd_{rms}(\mathbf{a},\mathbf{b},\mathbf{c})} \quad [dB]
 	\end{split}
 \end{equation}
@@ -685,13 +686,13 @@ The quality of a pitch transformation can be measured by controlling the fundame
 
 For a sentence of several pitch periods the average error in fundamental frequency is
 \begin{equation}
-	\mu_{\epsilon} = \frac{1}{N}\sum_{i=0}^{N-1} f_0^t(i) - \hat{f_0}(i)
+	\mu_{\epsilon} = \frac{1}{N}\sum_{i=0}^{N-1} f_0^t(i) - \tilde{f_0}(i)
 \end{equation}
-where $f_0^t$ is the target fundamental frequency and $\hat{f_0}$ is the transformed fundamental frequency.
+where $f_0^t$ is the target fundamental frequency and $\tilde{f_0}$ is the transformed fundamental frequency.
 
-A metric for relative improvement from the source pitch $f_0^s$ used in this paper is the normalised pitch distance (NPD\abbrev{NPD}{Normalised Pitch Distance})
+A metric for relative improvement from the source pitch $f_0^s$ used in this paper is the normalised pitch distance (NPD\abbrev{NPD}{Normalised Pitch Distance}) \cite{najjary04}
 \begin{equation}
-	NPD = \sqrt{\frac{\sum_{i=0}^{N-1} \pbrackets{f_0^t(i)-\hat{f_0}(i)}^2}{\sum_{i=0}^{N-1} \pbrackets{f_0^t(i)-f_0^s(i)}^2}}
+	NPD = \sqrt{\frac{\sum_{i=0}^{N-1} \pbrackets{f_0^t(i)-\tilde{f_0}(i)}^2}{\sum_{i=0}^{N-1} \pbrackets{f_0^t(i)-f_0^s(i)}^2}}
 \end{equation}
 
 % subsection Pitch metrics (end)

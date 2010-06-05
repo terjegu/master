@@ -54,26 +54,29 @@ The global constraints were chosen to prevent stripping of the source LPC vector
 
 \section{Filter Transformation} % (fold)
 \label{sec:filter_transformation}
+\TODO{all frames are transformed in contrast to stylianou and his HNN system}
 
 By transforming the filter we alter the magnitude spectrum of the frequency response of the vocal tract. The filter representation was cepstral coefficients which have the property of low correlation between different CC vectors. This was exploited by approximating the covariance matrices $\Sigma^{xx}$ and $\Sigma^{yx}$ to diagonal matrices. The Gaussian mixture model were trained with cepstrum vectors of order 13 from the source speaker $X_{cc}$. 128 mixtures was used in the GMM with initialisation with vector quantization by the k-means algorithm \cite{linde80}. The covariance matrices had a lower bound of $10^{-5}$ to ensure convergence. With the GMM fitted to the source speaker and a set of time aligned source and target cepstral vectors, the cross-covariance $\mathbf{\Sigma}^{yx}$ matrices and the mean value vectors $\boldsymbol{\mu}^y$ were estimated as described in Section~\ref{sub:diagonal_covariance_matrix}.
 
-The GMM fitted to the source and the estimated $\mathbf{\Sigma}^{yx}$ and $\boldsymbol{\mu}^y$ were used as input to the transformation function as well as a set of cepstrum vectors from the source speaker, not included in the training set. The converted $\mathbf{\hat{X}}_{cc}$ vectors were check for stability in the reflection coefficients domain. To get reflection coefficients from cepstrum by the recursion \eqref{eq:ar2rf} the cepstrum vectors were first converted to 13 order LP by \eqref{eq:cc2ar}. The reflection coefficients that were not stable were forced to be inside the unit circle before they were converted back again. 
+The GMM fitted to the source and the estimated $\mathbf{\Sigma}^{yx}$ and $\boldsymbol{\mu}^y$ were used as input to the transformation function as well as a set of cepstrum vectors from the source speaker, not included in the training set. The converted $\mathbf{\tilde{Y}}_{cc}$ vectors were check for stability in the reflection coefficients domain. To get reflection coefficients from cepstrum by the recursion \eqref{eq:ar2rf} the cepstrum vectors were first converted to 13 order LP by \eqref{eq:cc2ar}. The reflection coefficients that were not stable were forced to be inside the unit circle before they were converted back again. 
 
 The LP order in the analysis was less than the order of CC in the transformation. Since the transformation is a probabilistic modification of coefficients it is not very likely that the normal recursion for CC to LP conversion \eqref{eq:cc2ar} would yield 0 for the excessive coefficients. Instead cepstral coefficients were to converted to power spectrum to get the LP coefficients via autocorrelation, Figure~\ref{fig:cc2ar}.
 
 Four different configurations were tested. The straight forward configuration with all cepstrum coefficients and no special pre-processing was tested and used as a baseline. Pre-emphasis, Section~\ref{sub:pre_emphasis}, was implemented with a filter coefficient $\alpha=0.97$ and applied on the speech signals in the very first phase of the process and the inverse operation was applied after the synthesis. According to \cite{turk06}, pre-emphasis could enhance transformation of high frequencies. The third setup excluded the the first cepstrum coefficient $c_0$, which is related to frame energy, from the transformation as suggested by \cite{stylianou98} and the fourth setup was a combination of the latter two.
 
-The spectrum of unvoiced frames are not important in speaker identification \TODO{cite}, hence they were not transformed but used directly in the synthesis.
+% The spectrum of unvoiced frames are not important in speaker identification \TODO{cite}, hence they were not transformed but used directly in the synthesis.
 % section Filter Transformation (end)
 
 \section{Pitch Transformation} % (fold)
 \label{sec:pitch_transformation}
-Given a GMM fitted to a vector $\mathbf{z}$, the transformation function has the property of finding remaining elements of the $\mathbf{z}$ vector given a new incomplete vector. Three such $\mathbf{z}$ vectors were tested to find the corresponding $f_0$ of the target speaker to any given frame, namely $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$, $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},f_0^y}$ and $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},f_0^y}$.
+The easiest way of transforming the pitch is to scale the fundamental frequency such that the mean value match the mean of the target $f_0$, but the short-time error, or standard deviation of the error, could be huge. The goal of the GMM transformation is to do better than that.
+
+Given a GMM fitted to a vector $\mathbf{z}$, the transformation function has the property of finding remaining elements of the $\mathbf{z}$ vector given a new incomplete vector. Three such $\mathbf{z}$ vectors were tested to find the corresponding $f_0$ of the target speaker to any given frame, namely $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$, $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},f_0^y}$ and $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},f_0^y}$, where $x$ represents the source speaker and $y$ the target speaker.
 
 The pitch was transformed with the transformation function \eqref{eq:transformation_function} with a 64 mixtures full-matrix GMM fitted to a joint vector of target cepstrum coefficients and the fundamental frequency $f_0$ to the corresponding frames, as suggested by \cite{najjary03new}. The same voiced frames used in the frequency transform training were used except the first cepstral coefficients $\mathbf{c}_0$, which is related to the frame energy, were excluded. 
-\begin{equation}
-	\mathbf{Z} = \sbrackets{\mathbf{Y}_{cc}, \mathbf{f}_{0}}
-\end{equation}
+% \begin{equation}
+% 	\mathbf{Z} = \sbrackets{\mathbf{Y}_{cc}, \mathbf{f}_{0}}
+% \end{equation}
 
 The dynamic range of the fundamental frequency is in the range $\sbrackets{50,500}$ Hz. It is advantageous to scale the $f_0$ parameters to values in the neighbourhood of the cepstrum coefficients since they are used in a joint vector. This can be achieved by a log-normalisation \cite{najjary03new}.
 \begin{equation}
@@ -81,11 +84,11 @@ The dynamic range of the fundamental frequency is in the range $\sbrackets{50,50
 \end{equation}
 where $\bar{f_0}$ is the average $f_0$ of all voiced frames.
 
-The input in the transformation function was the transformed spectra parameters $\hat{\mathbf{y}}_{cc}$ and the output was the log-normalised $f_0$.
+For the training vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$ the input in the transformation function was the transformed spectra parameters $\tilde{\mathbf{y}}_{cc}$ and the output was the log-normalised $f_0$.
 \begin{equation}
 	\label{eq:pitch_transformation}
 	\begin{split}
-		\hat{f}_0 =& \fff(\mathbf{y}_{cc})\\
+		\tilde{f}_0 =& \fff(\mathbf{y}_{cc})\\
 		=& \sum_{i=1}^{m}P(C_i \vert \mathbf{y}_{cc}) \sbrackets{\boldsymbol{\mu}_i^{f_0} + \mathbf{\Sigma}_i^{f_0y} \pbrackets{\mathbf{\Sigma}_i^{yy}}^{-1} (\mathbf{y}_{cc}-\boldsymbol{\mu}_i^y)}
 	\end{split}
 \end{equation}
@@ -114,7 +117,7 @@ The moving average smoothing is in fact a lowpass FIR filter as depicted in Figu
 		\label{fig:moving_avg}
 	\end{center}
 \end{figure}
-The moving average filter is optimal in removing random noise while retaining a sharp and steep response. It is not, however, a very good lowpass filter due to its slow roll-off and bad stopband attenuation.
+The moving average filter is optimal in removing random noise while retaining a sharp and steep response. It is not, however, a very good lowpass filter due to its slow roll-off and bad stopband attenuation \cite{digsig}.
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=.75\textwidth]{fig/f0_smoothing}
@@ -137,7 +140,7 @@ A third smoothing technique was tested as well. By including three consecutive $
 \begin{equation}
 	\Delta f_{0,t} = \frac{1}{2}\pbrackets{f_{0,t}(n+1)-f_{0,t}(n-1)}
 \end{equation}
-In a perfect transformation the output would be
+The gradient was utilised to control the change of consecutive transformations by the fact that the current transformation should be close to
 \begin{equation}
 	f_{0,t} = f_{0,t-1} + \Delta f_{0,t-1}
 \end{equation}
@@ -160,11 +163,11 @@ All three smoothing techniques and the straight forward $f_0$ transformation wer
 \section{Synthesis of Transformed Feature Parameters} % (fold)
 \label{sec:synthesis_of_transformed_feature_parameters}
 
-The LP synthesis was done pitch-synchronously the same way as the analysis, only with new pitch labels and new LP coefficients for voiced frames. The transformed fundamental frequency $\hat{F}_0$ was used to find the new pitch markings. Each frame of LP coefficient were mapped to its corresponding $f_0(n)$, hence the corresponding pitch label can then be found by the cumulative sum of $1/\hat{F}_0(n)$ and multiplying by the sampling frequency to get the label in samples.
+The LP synthesis was done pitch-synchronously the same way as the analysis, only with new pitch labels and new LP coefficients for voiced frames. The transformed fundamental frequency $\tilde{F}_0$ was used to find the new pitch markings. Each frame of LP coefficient were mapped to its corresponding $f_0(n)$, hence the corresponding pitch label can then be found by the cumulative sum of $1/\tilde{F}_0(n)$ and multiplying by the sampling frequency to get the label in samples.
 \begin{equation}
 	\begin{split}
-		\hat{p}(n) =& F_s \sum_{i=1}^{n}\frac{1}{\hat{F}_0(i)} \\
-		 =& \hat{p}(n-1) + \frac{F_s}{\hat{F}_0(n)} \\
+		\tilde{p}(n) =& F_s \sum_{i=1}^{n}\frac{1}{\tilde{F}_0(i)} \\
+		 =& \tilde{p}(n-1) + \frac{F_s}{\tilde{F}_0(n)} \\
 	\end{split}
 \end{equation}
 
@@ -172,7 +175,7 @@ The new pitch labels were used in the PSOLA routine, Section~\ref{sub:psola}, to
 \begin{equation}
 	\tilde{x}(n) = \frac{1}{1 - \sum_{k=1}^{p-1} \tilde{\alpha}_k \tilde{e}(n-k)}
 \end{equation}
-The last memory states from the synthesis of the current frame were used as initial states in the next frame to get a smooth frame stitching.
+The last memory states from the synthesis of the current frame were used as initial states in the next frame to get a smooth frame concatenation.
 
 % section Synthesis of Transformed Feature Parameters (end)
 

@@ -2,15 +2,14 @@
 
 
 % ---------- PACKAGES ----------
-% \usepackage[latin1]{inputenc} 
+\usepackage[utf8]{inputenc} 
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 % \usepackage{mathdesign} % utopia,garamond,charter
-% \usepackage{textcomp}
+\usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
 \usepackage{geometry}
 \usepackage{graphicx,color}
-\usepackage{fancyhdr}
 \usepackage[Glenn]{fncychap}
 % \usepackage[expansion=false]{microtype}
 % \usepackage[firstpage]{draftwatermark}
@@ -97,7 +96,7 @@
 \renewcommand{\floatpagefraction}{0.80}
 
 % Vertical space between a float and text
-% \setlength{\intextsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{12pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{15pt plus 2pt minus 4pt}
 
 % ---------- Figure sizes ----------
@@ -118,12 +117,39 @@
 \newlength{\matlabfour}
 \setlength{\matlabfour}{0.45\textwidth}
 
+% ---------- PAGE LAYOUT ----------
+\textwidth130mm
+\textheight194mm
+\headheight5mm
+\headsep10mm
+\footskip12mm
+\marginparwidth0mm
+\marginparsep10mm
+
+\voffset3.5mm
+\topmargin-10mm
+\oddsidemargin2.5mm
+\evensidemargin-4mm
 
 % ---------- DEFINE HEADER AND FOOTERS ----------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+% Header width should extend beyond text width
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+
+% remember chapter title
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+% section number and title
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
 \fancyhf{}
-\fancyhead[LE]{{\nouppercase{\leftmark}}}
-\fancyhead[RO]{{\nouppercase{\rightmark}}}
-\cfoot{\thepage}
+\fancyhead[LE,RO]{\bf \thepage}
+\fancyhead[RE]{\bf \leftmark}
+\fancyhead[LO]{\bf \rightmark}
+
+
 
 
 % ---------- NOTES IN PAPER ----------
