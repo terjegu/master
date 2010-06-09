@@ -1,26 +1,26 @@
 \chapter{Implementation} % (fold)
 \label{cha:implementation}
-This chapter will cover how the theory in Chapter~\ref{cha:theory} can be implemented and the different version of the system which were tested. The important steps in process are \begin{inparaenum}[\itshape a\upshape)]  \item the pre-processing with endpoint-detection and unvoiced detection, \item the pitch synchronous LPC analysis and the dynamic time warping for training data alignment, \item the frequency conversion in the cepstrum domain to utilise diagonal covariance properties, \item the pitch transform via $f_0$ and \item PSOLA and pitch synchronous synthesis filtering. \end{inparaenum}
+This chapter will cover how the theory in Chapter~\ref{cha:theory} can be implemented and the different versions of the system that were tested. The important steps in the process are \begin{inparaenum}[\itshape a\upshape)]  \item the pre-processing with endpoint-detection and unvoiced detection, \item the pitch synchronous LPC analysis and the dynamic time warping for training data alignment, \item the frequency conversion in the cepstrum domain to utilise diagonal covariance properties, \item the pitch transform via $f_0$ and \item PSOLA and pitch synchronous synthesis filtering. \end{inparaenum}
 
 \section{Analysis} % (fold)
 \label{sec:analysis}
-The recorded speech samples used in the implementation included parts of silence especially in the beginning and end of the recordings. Each recording consisted of one sentence which means there was negligible parts of silence during the utterances. The endpoints of each sentence were detected by the algorithm described in Section~\ref{sub:endpoint_detection}.
+The recorded speech samples used in the implementation included parts of silence especially in the beginning and end of the recordings. Each recording consisted of one sentence, which means there were negligible parts of silence during the utterances. The endpoints of each sentence were detected by the algorithm described in Section~\ref{sub:endpoint_detection}.
 
-The stripped recordings with a sampling frequency of 8k kHz were used in a pitch-synchronous linear prediction analysis of order 10, \ie the signal was segmented into two-pitch period length hamming windows centered around a pitch pulse. According to \cite{chandra74} there is little difference between the autocorrelation and the covariance method for natural voiced and a window length of 2 pitch periods. The autocorrelation method was chosen as described in Section~\ref{sub:linear_predictive_coding}. 
+The stripped recordings with a sampling frequency of 8k kHz were used in a pitch-synchronous linear prediction analysis of order 10, \ie the signal was segmented by two-pitch period length Hamming windows, centered around a pitch pulse. According to \cite{chandra74}, there is negligible difference between the autocorrelation and the covariance method for natural speech with window length of 2 pitch periods. The autocorrelation method was implemented, as described in Section~\ref{sub:linear_predictive_coding}. 
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.75\textwidth]{fig/voiced_detection}
+		\includegraphics[width=\matlabone]{fig/voiced_detection}
 		\caption{Voiced/unvoiced detection. Red colour indicates segments of a speech signal detected as unvoiced.}
 		\label{fig:voiced_detection}
 	\end{center}
 \end{figure}
-The pitch markings and the fundamental frequency $f_0$, as well as detection of unvoiced frames, were read from a database of earlier studies at NTNU, IET which used the RAPT algorithm outlined in Section~\ref{sub:pitch_detection}.
+The pitch markings and the fundamental frequency $f_0$, as well as detection of unvoiced frames, were read from a database of earlier studies at NTNU \cite{fonema}, which used the RAPT algorithm outlined in Section~\ref{sub:pitch_detection}.
 
 % section LPC analysis (end)
 
 \section{Dynamic Time Warping} % (fold)
 \label{imp:dynamic_time_warping}
-The LPC frames marked as voiced was used in the dynamic time warping algorithm, Section~\ref{sec:dynamic_time_warping}, to find the optimal mapping between the source and target LP frames. The local constraint for the dynamic time warping was optimised for the Itakura distance \eqref{eq:itakura_distance} which resulted in the weighting factors $\alpha=1, \beta=1, \gamma=1$.
+The LPC frames marked as voiced were used in the dynamic time warping algorithm, Section~\ref{sec:dynamic_time_warping}, to find the optimal mapping between the source and target LP frames. The local constraints for the dynamic time warping were optimised for the Itakura distance \eqref{eq:itakura_distance}, which resulted in the weighting factors $\alpha=1$, $\beta=1$ and $\gamma=1$.
 
 % The local constraint for the dynamic time warping was tested to find the optimal combination of weighting parameters. The testing metrics in the test were number of frames that were swapped, number of displacement over some critical error limit, the average error in milliseconds and the Itakura distance \eqref{eq:itakura_distance}. The critical error limit were set to 50 ms.
 % \begin{table}[htbp]
@@ -42,27 +42,37 @@ The LPC frames marked as voiced was used in the dynamic time warping algorithm, 
 
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.75\textwidth]{fig/dtw_cum2}
-		\caption{Time alignment by dynamic time warping and the Itakura distance.}
+		\includegraphics[width=\matlabone]{fig/dtw_cum2}
+		\caption{Time alignment by dynamic time warping and the Itakura distance. The grey-scale indicates the cumulative Itakura distance and the red line denotes the resulting shortest path.}
 		\label{fig:dtw}
 	\end{center}
 \end{figure}
-The global constraints were chosen to prevent stripping of the source LPC vectors and to allow open ends, of size 20 frames, for the target vectors as shown in Figure~\ref{fig:dtw}. Moreover, the global constraints decreased the possible paths by an outer border to relax the computational complexity and constrain a maximum modification of the target signal. The greyscale depicts the cumulated Itakura distance where a light shade illustrates a close match. The red line in Figure~\ref{fig:dtw} depicts the resulting shortest path in the distance matrix. If the red path has a horizontal line along its path, \ie one source vector is mapped to more than one target vector, only one the target vectors was used in the mapping. By this configuration the source vectors is unaltered and the target vectors are duplicated or discarded to best match the source vectors.
+The global constraints were chosen to prevent stripping of the source LPC vectors and to allow open ends, of size 20 frames, for the target vectors as shown in Figure~\ref{fig:dtw}. Without open ends, the first and last source frame will always be mapped to the first and last, respectively, target frame. Moreover, the global constraints decreased the possible paths by an outer border to relax the computational complexity and constrain a maximum modification of the target signal. The greyscale depicts the cumulated Itakura distance where a light shade illustrates a close match. The red line in Figure~\ref{fig:dtw} depicts the resulting shortest path in the distance matrix. If the red path has a horizontal line along its path, \ie one source vector is mapped to more than one target vector; only one of the target vectors was used in the mapping. By this configuration the source vectors is unaltered and the target vectors are duplicated or discarded to best match the source vectors.
 % section Dynamic Time Warping (end)
 
 
 
 \section{Filter Transformation} % (fold)
 \label{sec:filter_transformation}
-\TODO{all frames are transformed in contrast to stylianou and his HNN system}
 
-By transforming the filter we alter the magnitude spectrum of the frequency response of the vocal tract. The filter representation was cepstral coefficients which have the property of low correlation between different CC vectors. This was exploited by approximating the covariance matrices $\Sigma^{xx}$ and $\Sigma^{yx}$ to diagonal matrices. The Gaussian mixture model were trained with cepstrum vectors of order 13 from the source speaker $X_{cc}$. 128 mixtures was used in the GMM with initialisation with vector quantization by the k-means algorithm \cite{linde80}. The covariance matrices had a lower bound of $10^{-5}$ to ensure convergence. With the GMM fitted to the source speaker and a set of time aligned source and target cepstral vectors, the cross-covariance $\mathbf{\Sigma}^{yx}$ matrices and the mean value vectors $\boldsymbol{\mu}^y$ were estimated as described in Section~\ref{sub:diagonal_covariance_matrix}.
+By transforming the filter we alter the magnitude spectrum of the frequency response of the vocal tract. The filter representation was cepstral coefficients, which have the property of low correlation between different CC vectors. This was exploited by approximating the covariance matrices $\mathbf{\Sigma}^{xx}$ and $\mathbf{\Sigma}^{yx}$ to diagonal matrices. The Gaussian mixture model was trained with cepstrum vectors of order 13 from the source speaker, $\mathbf{X}_{cc}$. 128 mixtures were used in the GMM initialised by vector quantization classification computed by the k-means algorithm \cite{linde80}. The covariance matrices had a lower bound of $10^{-5}$ to ensure convergence. With the GMM fitted to the source speaker and a set of time aligned source and target cepstral vectors, the cross-covariance matrices $\mathbf{\Sigma}^{yx}$ and the mean value vectors $\boldsymbol{\mu}^y$ were estimated as described in Section~\ref{sub:diagonal_covariance_matrix}.
 
-The GMM fitted to the source and the estimated $\mathbf{\Sigma}^{yx}$ and $\boldsymbol{\mu}^y$ were used as input to the transformation function as well as a set of cepstrum vectors from the source speaker, not included in the training set. The converted $\mathbf{\tilde{Y}}_{cc}$ vectors were check for stability in the reflection coefficients domain. To get reflection coefficients from cepstrum by the recursion \eqref{eq:ar2rf} the cepstrum vectors were first converted to 13 order LP by \eqref{eq:cc2ar}. The reflection coefficients that were not stable were forced to be inside the unit circle before they were converted back again. 
+The GMM fitted to the source, and the estimated $\mathbf{\Sigma}^{yx}$ and $\boldsymbol{\mu}^y$, were used as input to the transformation function as well as a set of cepstrum vectors from the source speaker, not included in the training set. The converted $\mathbf{\tilde{Y}}_{cc}$ vectors were checked for stability in the reflection coefficients domain. To get reflection coefficients from cepstrum by the recursion \eqref{eq:ar2rf}, the cepstrum vectors were first converted to 13 order LP by \eqref{eq:cc2ar}. The coefficients that were not stable were mirrored to be inside the unit circle. Mirroring means reducing the amplitude, in a polar coordinate sense, to be inside the unit circle without altering the angular frequency \cite{digsig}.
 
-The LP order in the analysis was less than the order of CC in the transformation. Since the transformation is a probabilistic modification of coefficients it is not very likely that the normal recursion for CC to LP conversion \eqref{eq:cc2ar} would yield 0 for the excessive coefficients. Instead cepstral coefficients were to converted to power spectrum to get the LP coefficients via autocorrelation, Figure~\ref{fig:cc2ar}.
+The LP order in the analysis was less than the order of CC in the transformation. Since the transformation is a probabilistic modification of coefficients it is not very likely that the normal recursion for CC to LP conversion \eqref{eq:cc2ar} would yield 0 for the excessive coefficients. Instead cepstral coefficients were converted to power spectrum to get the LP coefficients via autocorrelation, Figure~\ref{fig:cc2ar}.
 
-Four different configurations were tested. The straight forward configuration with all cepstrum coefficients and no special pre-processing was tested and used as a baseline. Pre-emphasis, Section~\ref{sub:pre_emphasis}, was implemented with a filter coefficient $\alpha=0.97$ and applied on the speech signals in the very first phase of the process and the inverse operation was applied after the synthesis. According to \cite{turk06}, pre-emphasis could enhance transformation of high frequencies. The third setup excluded the the first cepstrum coefficient $c_0$, which is related to frame energy, from the transformation as suggested by \cite{stylianou98} and the fourth setup was a combination of the latter two.
+\begin{figure}[htbp]
+	\begin{center}
+	\subfigure[Covariance matrix]{\label{fig:covariance_matrix}
+		\includegraphics[width = .45\textwidth]{fig/sigma_cov}}
+	\subfigure[Covariance matrix without $c_0$]{\label{fig:covariance_matrix_without_c0}
+		\includegraphics[width = .45\textwidth]{fig/sigma_cov_c0}}
+	\caption{The impact on the covariance matrix by excluding the cepstral energy coefficient $c_0$.}
+	\label{fig:covar_impact}
+	\end{center}
+\end{figure}
+
+Four different configurations were tested. The straightforward configuration with all cepstrum coefficients and no special pre-processing was tested and used as a baseline. Pre-emphasis, Section~\ref{sub:pre_emphasis}, was implemented with a filter coefficient $\alpha=0.97$ and applied on the speech signals in the very first phase of the process and the inverse operation was applied after the synthesis. According to \cite{turk06}, pre-emphasis could enhance transformation of high frequencies. The third setup excluded the first cepstrum coefficient $c_0$, which is related to frame energy, from the transformation as suggested by \cite{stylianou98} and the fourth setup was a combination of the latter two. By excluding the energy coefficient $c_0$, the approximation of diagonal covariance matrices is less crude, as depicted in Figure~\ref{fig:covar_impact}. A dark square indicates a high correlation.
 
 % The spectrum of unvoiced frames are not important in speaker identification \TODO{cite}, hence they were not transformed but used directly in the synthesis.
 % section Filter Transformation (end)
@@ -71,9 +81,9 @@ Four different configurations were tested. The straight forward configuration wi
 \label{sec:pitch_transformation}
 The easiest way of transforming the pitch is to scale the fundamental frequency such that the mean value match the mean of the target $f_0$, but the short-time error, or standard deviation of the error, could be huge. The goal of the GMM transformation is to do better than that.
 
-Given a GMM fitted to a vector $\mathbf{z}$, the transformation function has the property of finding remaining elements of the $\mathbf{z}$ vector given a new incomplete vector. Three such $\mathbf{z}$ vectors were tested to find the corresponding $f_0$ of the target speaker to any given frame, namely $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$, $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},f_0^y}$ and $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},f_0^y}$, where $x$ represents the source speaker and $y$ the target speaker.
+Given a GMM fitted to a vector $\mathbf{z}$, the transformation function has the property of finding remaining elements of a $\mathbf{z}$ vector given a new incomplete vector. Four such $\mathbf{z}$ vectors were tested to find the corresponding $f_0$ of the target speaker to any given frame, namely $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$, $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},f_0^y}$, $\mathbf{z} = \sbrackets{\mathbf{x}_{cc},\mathbf{y}_{cc},f_0^y}$ and $\mathbf{z} = \sbrackets{f_0^x,f_0^y}$, where $x$ represents the source speaker and $y$ the target speaker.
 
-The pitch was transformed with the transformation function \eqref{eq:transformation_function} with a 64 mixtures full-matrix GMM fitted to a joint vector of target cepstrum coefficients and the fundamental frequency $f_0$ to the corresponding frames, as suggested by \cite{najjary03new}. The same voiced frames used in the frequency transform training were used except the first cepstral coefficients $\mathbf{c}_0$, which is related to the frame energy, were excluded. 
+The pitch was transformed with the transformation function \eqref{eq:transformation_function} with a 64 mixture, full-matrix GMM, fitted to a joint vector of target cepstrum coefficients and the fundamental frequency $f_0$ to the corresponding frames, as suggested by \cite{najjary03new}. The same voiced frames used in the frequency transform training were used except the first cepstral coefficient $\mathbf{c}_0$, which is related to the frame energy, was excluded. 
 % \begin{equation}
 % 	\mathbf{Z} = \sbrackets{\mathbf{Y}_{cc}, \mathbf{f}_{0}}
 % \end{equation}
@@ -84,7 +94,7 @@ The dynamic range of the fundamental frequency is in the range $\sbrackets{50,50
 \end{equation}
 where $\bar{f_0}$ is the average $f_0$ of all voiced frames.
 
-For the training vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$ the input in the transformation function was the transformed spectra parameters $\tilde{\mathbf{y}}_{cc}$ and the output was the log-normalised $f_0$.
+For the training vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$, the input to the transformation function were the transformed spectral parameters $\tilde{\mathbf{y}}_{cc}$ and the output were the log-normalised $f_0$.
 \begin{equation}
 	\label{eq:pitch_transformation}
 	\begin{split}
@@ -94,11 +104,14 @@ For the training vector $\mathbf{z} = \sbrackets{\mathbf{y}_{cc},f_0^y}$ the inp
 \end{equation}
 The final $f_0$ value was derived from the de-normalisation of the transformation output. The same procedure was done for all versions of the $\mathbf{z}$ vector.
 
+The unvoiced parts of the signal were not transformed. However, they were assigned a uniform $f_0$ value, equal to the average target $f_0$, used in PSOLA and pitch synchronous synthesis.
+
+
 \subsection{Smoothing techniques} % (fold)
 \label{sub:smoothing_techniques}
 To prevent an unnatural fluctuation in the $f_0$ contour, several smoothing techniques were tested. 
 
-A good and simple smoothing technique is the moving average filter which simply compute the current value as a average over the last $M$ samples \cite{digsig}.
+A good and simple smoothing technique is the moving average filter which simply computes the current value as a average over the last $M$ samples \cite{digsig}.
 \begin{equation}
 		\bar{f}_0(n) = \frac{1}{M}\sum_{k=0}^{M-1}f_0(n-k)
 \end{equation}
@@ -112,38 +125,40 @@ which can be implemented as a recursion
 The moving average smoothing is in fact a lowpass FIR filter as depicted in Figure~\ref{fig:moving_avg}.
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.75\textwidth]{fig/moving_avg_3}
+		\includegraphics[width=\matlabone]{fig/m_avg_3}
 		\caption{Frequency response of a moving average filter with $M=3$.}
 		\label{fig:moving_avg}
 	\end{center}
 \end{figure}
-The moving average filter is optimal in removing random noise while retaining a sharp and steep response. It is not, however, a very good lowpass filter due to its slow roll-off and bad stopband attenuation \cite{digsig}.
+The moving average filter is optimal in removing random noise, while retaining a sharp and steep response. It is not, however, a very good lowpass filter due to its slow roll-off and bad stopband attenuation \cite{digsig}.
 \begin{figure}[htbp]
 	\begin{center}
-		\includegraphics[width=.75\textwidth]{fig/f0_smoothing}
+		\includegraphics[width=\matlabone]{fig/smoothing}
 		\caption{A typical effect of smoothing the $f_0$ contour.}
 		\label{fig:f0_smoothing}
 	\end{center}
 \end{figure}
 The impact of $f_0$-smoothing is depicted in Figure~\ref{fig:f0_smoothing}.
 
-An alternative to the moving average smoothing is to average over several transformation of the same $f_0$, henceforth reffered to as \emph{modified moving average}. If the GMM is trained with a joint vector of the previous and next $f_0$ value in addition to the current $f_0$,
+An alternative to the moving average smoothing is to average over several transformation of the same $f_0$, henceforth referred to as \emph{modified moving average}. If the GMM is trained with a joint vector of the previous and next $f_0$ value in addition to the current $f_0$,
 \begin{equation}
 	\mathbf{z}_t = \sbrackets{\mathbf{y}_{cc,t}, f_{0,t}(n-1), f_{0,t}(n), f_{0,t}(n+1)} 
 \end{equation}
-The output of the transformation would yield a vector of three $f_0$ values. Three consecutive transformation would include the same $f_0$ value and was used to compute an average transformation
+The output of the transformation would yield a vector of three $f_0$ values. Three consecutive transformation would include the same $f_0$ value and were used to compute an average transformation
 \begin{equation}
 	\bar{f}_{0,t} = \frac{1}{3}\pbrackets{f_{0,t-1}(n+1)+f_{0,t}(n)+f_{0,t+1}(n-1)} 
 \end{equation}
 
-A third smoothing technique was tested as well. By including three consecutive $f_0$ values in the transformation the gradient in the $f_0$ contour is available
+A third smoothing technique was tested as well. By including three consecutive $f_0$ values in the transformation, the gradient in the $f_0$ contour is available
 \begin{equation}
 	\Delta f_{0,t} = \frac{1}{2}\pbrackets{f_{0,t}(n+1)-f_{0,t}(n-1)}
 \end{equation}
+
 The gradient was utilised to control the change of consecutive transformations by the fact that the current transformation should be close to
 \begin{equation}
 	f_{0,t} = f_{0,t-1} + \Delta f_{0,t-1}
 \end{equation}
+
 The $\Delta$ values could therefor be used to compute limits of the transformation to prevent over-fluctuating contour, henceforth called \emph{delta-limit smoothing}. The limits were set to be
 \begin{equation}
 	\begin{split}
@@ -155,7 +170,7 @@ The $\Delta$ values could therefor be used to compute limits of the transformati
 	The lower limit is stricter than the upper to allow more deviation in the ``correct'' direction.
 \end{remark}
 
-All three smoothing techniques and the straight forward $f_0$ transformation were tested. There was no transformation of unvoiced parts of the excitation signal. 
+The GMM model used in the transformation treats the input vectors as independent of each other. A model that utilises temporal dependency information might work better with the modified moving average smoothing and the delta-limit smoothing. All three smoothing techniques, and the straightforward $f_0$ transformation, were tested. There was no transformation of unvoiced parts of the excitation signal. 
 
 % subsection Smoothing techniques (end)
 % section Pitch Transformation (end)
@@ -163,15 +178,15 @@ All three smoothing techniques and the straight forward $f_0$ transformation wer
 \section{Synthesis of Transformed Feature Parameters} % (fold)
 \label{sec:synthesis_of_transformed_feature_parameters}
 
-The LP synthesis was done pitch-synchronously the same way as the analysis, only with new pitch labels and new LP coefficients for voiced frames. The transformed fundamental frequency $\tilde{F}_0$ was used to find the new pitch markings. Each frame of LP coefficient were mapped to its corresponding $f_0(n)$, hence the corresponding pitch label can then be found by the cumulative sum of $1/\tilde{F}_0(n)$ and multiplying by the sampling frequency to get the label in samples.
+The LP synthesis was done pitch-synchronously the same way as the analysis, only with new pitch labels and new LP coefficients for voiced frames. The transformed fundamental frequency $\tilde{f}_0$ was used to find the new pitch markings. Each frame of LP coefficient were mapped to its corresponding $f_0(n)$, hence the corresponding pitch label can then be found by the cumulative sum of $1/\tilde{f}_0(n)$, and multiplying by the sampling frequency to get the label in samples.
 \begin{equation}
 	\begin{split}
-		\tilde{p}(n) =& F_s \sum_{i=1}^{n}\frac{1}{\tilde{F}_0(i)} \\
-		 =& \tilde{p}(n-1) + \frac{F_s}{\tilde{F}_0(n)} \\
+		\tilde{p}(n) =& F_s \sum_{i=1}^{n}\frac{1}{\tilde{f}_0(i)} \\
+		 =& \tilde{p}(n-1) + \frac{F_s}{\tilde{f}_0(n)} \\
 	\end{split}
 \end{equation}
 
-The new pitch labels were used in the PSOLA routine, Section~\ref{sub:psola}, to alter the pitch of the utterances to be transformed. Pitch cycles were not discarded or duplicated which means that time-scale modifications were not implemented. This is mainly because such mapping information is not available with the presented implementation of DTW. The pitch modifications was implemented on the excitation signal from the inverse LP filtering to create a new excitation with a transformed pitch. The transformed excitation was then used as input to the LP synthesis filter with the transformed LP coefficients. 
+The new pitch labels were used in the PSOLA routine, Section~\ref{sub:psola}, to alter the pitch of the utterances to be transformed. Pitch cycles were not discarded or duplicated which means that time-scale modifications were not implemented. This is mainly because such mapping information is not available with the presented implementation of DTW. The pitch modifications were implemented on the excitation signal from the inverse LP filtering to create a new excitation with a transformed pitch. The transformed excitation was then used as input to the LP synthesis filter with the transformed LP coefficients. 
 \begin{equation}
 	\tilde{x}(n) = \frac{1}{1 - \sum_{k=1}^{p-1} \tilde{\alpha}_k \tilde{e}(n-k)}
 \end{equation}

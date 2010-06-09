@@ -8,7 +8,7 @@
 % \usepackage{mathdesign} % utopia,garamond,charter
 \usepackage{textcomp}
 % \usepackage{babel} % Only when l=nonenglish
-\usepackage{geometry}
+\usepackage[lmargin=25mm,rmargin=25mm,tmargin=27mm,bmargin=30mm,b5paper]{geometry}
 \usepackage{graphicx,color}
 \usepackage[Glenn]{fncychap}
 % \usepackage[expansion=false]{microtype}
@@ -102,7 +102,7 @@
 % ---------- Figure sizes ----------
 % 1 per column:
 \newlength{\matlabone} 
-\setlength{\matlabone}{.75\textwidth}
+\setlength{\matlabone}{.8\textwidth}
 
 % 2 per column
 \newlength{\matlabtwo}
@@ -118,18 +118,18 @@
 \setlength{\matlabfour}{0.45\textwidth}
 
 % ---------- PAGE LAYOUT ----------
-\textwidth130mm
-\textheight194mm
-\headheight5mm
-\headsep10mm
-\footskip12mm
-\marginparwidth0mm
-\marginparsep10mm
-
-\voffset3.5mm
-\topmargin-10mm
-\oddsidemargin2.5mm
-\evensidemargin-4mm
+% \textwidth130mm
+% \textheight194mm
+% \headheight5mm
+% \headsep10mm
+% \footskip12mm
+% \marginparwidth0mm
+% \marginparsep10mm
+% 
+% \voffset3.5mm
+% \topmargin-10mm
+% \oddsidemargin2.5mm
+% \evensidemargin-4mm
 
 % ---------- DEFINE HEADER AND FOOTERS ----------
 \usepackage{fancyhdr}
@@ -137,7 +137,7 @@
 
 % Header width should extend beyond text width
 \addtolength{\headwidth}{\marginparsep}
-\addtolength{\headwidth}{\marginparwidth}
+\addtolength{\headwidth}{1cm}
 
 % remember chapter title
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
